@@ -28,6 +28,7 @@ interface InfiniteCanvasProps {
 
 export interface InfiniteCanvasRef {
     resetView: () => void
+    resetDragState: () => void
 }
 
 // Memoized canvas item component to prevent unnecessary re-renders
@@ -200,6 +201,11 @@ export const InfiniteCanvas = forwardRef<InfiniteCanvasRef, InfiniteCanvasProps>
             setIsTouching(false)
             setLastTouchDistance(0)
             setTouchStartOffset({ x: 0, y: 0 })
+        },
+        resetDragState: () => {
+            setIsDragging(false)
+            setIsTouching(false)
+            setLastTouchDistance(0)
         }
     }), [])
 
@@ -367,10 +373,28 @@ export const InfiniteCanvas = forwardRef<InfiniteCanvasRef, InfiniteCanvasProps>
         document.addEventListener('mouseup', handleMouseUp)
         container.addEventListener('wheel', handleWheel, { passive: false })
 
+        // Additional global event listeners to ensure dragging stops
+        const handleGlobalMouseUp = () => {
+            setIsDragging(false)
+            setIsTouching(false)
+        }
+
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                setIsDragging(false)
+                setIsTouching(false)
+            }
+        }
+
+        document.addEventListener('mouseup', handleGlobalMouseUp, true)
+        document.addEventListener('visibilitychange', handleVisibilityChange)
+
         return () => {
             document.removeEventListener('mousemove', handleMouseMove)
             document.removeEventListener('mouseup', handleMouseUp)
             container.removeEventListener('wheel', handleWheel)
+            document.removeEventListener('mouseup', handleGlobalMouseUp, true)
+            document.removeEventListener('visibilitychange', handleVisibilityChange)
         }
     }, [handleMouseMove, handleMouseUp, handleWheel])
 

@@ -35,107 +35,120 @@ const ImageModal: React.FC<ImageModalProps> = ({ item, isOpen, onClose }) => {
 
     return (
         <div
-            className={`fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center ${isMobile ? 'p-2' : 'p-4'}`}
+            className={`fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center ${isMobile ? 'p-0' : 'p-8'}`}
             onClick={handleBackdropClick}
         >
-            <Card className={`bg-slate-900/95 border-white/20 w-full overflow-hidden ${isMobile ? 'h-full max-h-none' : 'max-w-4xl max-h-[90vh]'}`}>
-                <div className="relative h-full">
+            <Card className={`bg-slate-900/95 border-white/10 w-full overflow-hidden shadow-2xl ${isMobile ? 'h-full max-h-none rounded-none' : 'max-w-5xl max-h-[85vh] rounded-xl'}`}>
+                <div className="relative h-full md:pl-6">
                     {/* Close button */}
                     <Button
                         variant="ghost"
                         size="sm"
                         onClick={onClose}
-                        className={`absolute ${isMobile ? 'top-2 right-2' : 'top-4 right-4'} z-10 bg-black/50 hover:bg-black/70 text-white border-white/20`}
+                        className={`absolute ${isMobile ? 'top-3 right-3' : 'top-6 right-6'} z-10 bg-black/60 hover:bg-black/80 text-white border-white/20 rounded-full w-10 h-10 p-0`}
                     >
-                        <X className="w-4 h-4" />
+                        <X className="w-5 h-5" />
                     </Button>
 
-                    <div className={`${isMobile ? 'flex flex-col h-full' : 'grid md:grid-cols-2 gap-0'}`}>
+                    <div className={`${isMobile ? 'flex flex-col h-full' : 'grid grid-cols-3 gap-0 h-full'}`}>
                         {/* Image section */}
-                        <div className={`relative bg-black/50 ${isMobile ? 'flex-1 min-h-0' : 'aspect-square'}`}>
+                        <div className={`relative bg-black/30 ${isMobile ? 'flex-1 min-h-0' : 'col-span-2'}`}>
                             <img
                                 src={item.imageUrl}
                                 alt={item.title || 'Image'}
-                                className="w-full h-full object-cover"
+                                className="w-full h-full object-cover rounded-md"
                                 draggable={false}
                             />
                         </div>
 
                         {/* Details section */}
-                        <CardContent className={`space-y-6 overflow-y-auto ${isMobile ? 'p-4 max-h-[40vh]' : 'p-6 max-h-[90vh]'}`}>
-                            <div>
-                                <h2 className={`font-bold text-white mb-2 ${isMobile ? 'text-lg' : 'text-2xl'}`}>
-                                    {item.title || 'Untitled Memory'}
-                                </h2>
-                                <p className={`text-white/80 leading-relaxed ${isMobile ? 'text-xs' : 'text-sm'}`}>
-                                    {details.description}
-                                </p>
-                            </div>
-
-                            {/* Metadata */}
-                            <div className={isMobile ? 'space-y-2' : 'space-y-4'}>
-                                <div className="flex items-center gap-3 text-white/70">
-                                    <Calendar className="w-4 h-4" />
-                                    <span className={isMobile ? 'text-xs' : 'text-sm'}>
-                                        {details.date.toLocaleDateString('en-US', {
-                                            year: 'numeric',
-                                            month: 'long',
-                                            day: 'numeric'
-                                        })}
-                                    </span>
+                        <div className={`bg-slate-900/98 ${isMobile ? 'flex-shrink-0' : 'col-span-1'}`}>
+                            <CardContent className={`h-full overflow-y-auto ${isMobile ? 'p-6 space-y-4' : 'p-8 space-y-6'}`}>
+                                {/* Header */}
+                                <div className="border-b border-white/10 pb-4">
+                                    <h2 className={`font-bold text-white mb-3 ${isMobile ? 'text-xl' : 'text-2xl'}`}>
+                                        {item.title || 'Untitled Memory'}
+                                    </h2>
+                                    <p className={`text-white/70 leading-relaxed ${isMobile ? 'text-sm' : 'text-base'}`}>
+                                        {details.description}
+                                    </p>
                                 </div>
 
-                                <div className="flex items-center gap-3 text-white/70">
-                                    <MapPin className="w-4 h-4" />
-                                    <span className={isMobile ? 'text-xs' : 'text-sm'}>{details.location}</span>
+                                {/* Metadata */}
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-3 text-white/80">
+                                        <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+                                            <Calendar className="w-4 h-4" />
+                                        </div>
+                                        <span className={isMobile ? 'text-sm' : 'text-base'}>
+                                            {details.date.toLocaleDateString('en-US', {
+                                                year: 'numeric',
+                                                month: 'long',
+                                                day: 'numeric'
+                                            })}
+                                        </span>
+                                    </div>
+
+                                    <div className="flex items-center gap-3 text-white/80">
+                                        <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+                                            <MapPin className="w-4 h-4" />
+                                        </div>
+                                        <span className={isMobile ? 'text-sm' : 'text-base'}>{details.location}</span>
+                                    </div>
+
+                                    <div className="flex items-center gap-3 text-white/80">
+                                        <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+                                            <Camera className="w-4 h-4" />
+                                        </div>
+                                        <span className={isMobile ? 'text-sm' : 'text-base'}>{details.camera}</span>
+                                    </div>
+
+                                    <div className="flex items-center gap-3 text-white/80">
+                                        <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
+                                            <Heart className="w-4 h-4" />
+                                        </div>
+                                        <span className={isMobile ? 'text-sm' : 'text-base'}>{details.likes} likes</span>
+                                    </div>
                                 </div>
 
-                                <div className="flex items-center gap-3 text-white/70">
-                                    <Camera className="w-4 h-4" />
-                                    <span className={isMobile ? 'text-xs' : 'text-sm'}>{details.camera}</span>
+                                {/* Tags */}
+                                <div className="border-t border-white/10 pt-4">
+                                    <h3 className={`text-white font-semibold mb-3 ${isMobile ? 'text-base' : 'text-lg'}`}>Tags</h3>
+                                    <div className="flex flex-wrap gap-2">
+                                        {details.tags.map((tag, index) => (
+                                            <Badge
+                                                key={index}
+                                                variant="secondary"
+                                                className={`bg-white/15 text-white/90 hover:bg-white/25 border-white/20 ${isMobile ? 'text-sm px-3 py-1' : 'text-sm px-3 py-1.5'}`}
+                                            >
+                                                #{tag}
+                                            </Badge>
+                                        ))}
+                                    </div>
                                 </div>
 
-                                <div className="flex items-center gap-3 text-white/70">
-                                    <Heart className="w-4 h-4" />
-                                    <span className={isMobile ? 'text-xs' : 'text-sm'}>{details.likes} likes</span>
-                                </div>
-                            </div>
-
-                            {/* Tags */}
-                            <div>
-                                <h3 className={`text-white font-medium ${isMobile ? 'mb-2 text-sm' : 'mb-3'}`}>Tags</h3>
-                                <div className="flex flex-wrap gap-2">
-                                    {details.tags.map((tag, index) => (
-                                        <Badge
-                                            key={index}
-                                            variant="secondary"
-                                            className={`bg-white/10 text-white/90 hover:bg-white/20 ${isMobile ? 'text-xs px-2 py-1' : ''}`}
+                                {/* Actions */}
+                                <div className="border-t border-white/10 pt-6 mt-auto">
+                                    <div className="flex gap-3">
+                                        <Button
+                                            variant="outline"
+                                            size={isMobile ? "default" : "lg"}
+                                            className="flex-1 bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/30"
                                         >
-                                            #{tag}
-                                        </Badge>
-                                    ))}
+                                            <Heart className="w-4 h-4 mr-2" />
+                                            Like
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size={isMobile ? "default" : "lg"}
+                                            className="flex-1 bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/30"
+                                        >
+                                            Share
+                                        </Button>
+                                    </div>
                                 </div>
-                            </div>
-
-                            {/* Actions */}
-                            <div className={`flex gap-3 ${isMobile ? 'pt-2' : 'pt-4'}`}>
-                                <Button
-                                    variant="outline"
-                                    size={isMobile ? "sm" : "default"}
-                                    className="flex-1 bg-white/10 border-white/20 text-white hover:bg-white/20"
-                                >
-                                    <Heart className="w-4 h-4 mr-2" />
-                                    Like
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size={isMobile ? "sm" : "default"}
-                                    className="flex-1 bg-white/10 border-white/20 text-white hover:bg-white/20"
-                                >
-                                    Share
-                                </Button>
-                            </div>
-                        </CardContent>
+                            </CardContent>
+                        </div>
                     </div>
                 </div>
             </Card>

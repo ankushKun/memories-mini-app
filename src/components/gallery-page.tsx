@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback, useRef, useTransition, useEffect } from 'react'
-import InfiniteCanvas, { type CanvasItem } from './infinite-canvas'
+import InfiniteCanvas, { type CanvasItem, type InfiniteCanvasRef } from './infinite-canvas'
 import ImageModal from './image-modal'
 import { generateInfiniteGrid, clearImageUrlCache } from '../utils/generate-grid'
 import { useDebounce } from '../hooks/use-debounce'
@@ -15,7 +15,7 @@ const GalleryPage: React.FC = () => {
     const [isPending, startTransition] = useTransition()
     const [selectedImage, setSelectedImage] = useState<CanvasItem | null>(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
-    const canvasRef = useRef<{ resetView: () => void }>(null)
+    const canvasRef = useRef<InfiniteCanvasRef>(null)
     const isMobile = useIsMobile()
 
     // Debounce item count changes to prevent rapid re-computations
@@ -41,7 +41,7 @@ const GalleryPage: React.FC = () => {
 
     // Memoized reset function
     const resetView = useCallback(() => {
-        if (canvasRef.current?.resetView) {
+        if (canvasRef.current) {
             canvasRef.current.resetView()
         } else {
             // Fallback to reload if ref method not available
@@ -51,6 +51,10 @@ const GalleryPage: React.FC = () => {
 
     // Handle image click to open modal
     const handleImageClick = useCallback((item: CanvasItem) => {
+        // Reset canvas dragging state when opening modal
+        if (canvasRef.current) {
+            canvasRef.current.resetDragState()
+        }
         setSelectedImage(item)
         setIsModalOpen(true)
     }, [])

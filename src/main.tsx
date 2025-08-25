@@ -9,7 +9,6 @@ import { WAuthProviders } from "@wauth/strategy"
 import AosyncStrategy from "@vela-ventures/aosync-strategy"
 
 import App from './App'
-import AnotherPage from './another-page'
 
 
 
@@ -40,7 +39,6 @@ function Main() {
         <HashRouter>
           <Routes>
             <Route index element={<App />} />
-            <Route path="/another-page" element={<AnotherPage />} />
           </Routes>
         </HashRouter>
       </ThemeProvider>
