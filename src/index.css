@@ -124,5 +124,32 @@
 
 * {
   scroll-behavior: smooth;
-  transition: all 150ms ease-in-out;
+  /* transition: all 150ms ease-in-out; */
+}
+
+/* Mobile performance optimizations */
+@media (max-width: 768px) {
+  * {
+    /* Reduce animations on mobile for better performance */
+    transition-duration: 100ms !important;
+  }
+
+  /* Optimize touch interactions */
+  .touch-none {
+    touch-action: none;
+  }
+
+  /* Improve scrolling performance */
+  .overflow-hidden {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Reduce blur effects on mobile */
+  .backdrop-blur-sm {
+    backdrop-filter: blur(4px) !important;
+  }
+
+  .backdrop-blur-md {
+    backdrop-filter: blur(6px) !important;
+  }
 }
