@@ -100,7 +100,7 @@ const CanvasItemComponent = React.memo<{
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
         >
-            <div className="relative w-full h-full rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 bg-white/10 backdrop-blur-sm border border-white/20">
+            <div className="relative w-full h-full rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 bg-white/10 backdrop-blur-sm">
                 {!imageLoaded && !imageError && (
                     <div className="absolute inset-0 flex items-center justify-center bg-gray-800/50">
                         <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>

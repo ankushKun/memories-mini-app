@@ -1,12 +1,14 @@
 import React, { useState, useMemo, useCallback, useRef, useTransition, useEffect } from 'react'
 import InfiniteCanvas, { type CanvasItem, type InfiniteCanvasRef } from './infinite-canvas'
 import ImageModal from './image-modal'
+import UploadModal, { type UploadData } from './upload-modal'
 import { generateInfiniteGrid, clearImageUrlCache } from '../utils/generate-grid'
 import { useDebounce } from '../hooks/use-debounce'
 import { useIsMobile } from '../hooks/use-mobile'
 import { Button } from './ui/button'
 import { Card, CardContent } from './ui/card'
-import { RotateCcw } from 'lucide-react'
+import { RotateCcw, Plus } from 'lucide-react'
+import { ConnectButton } from '@arweave-wallet-kit/react'
 
 
 
@@ -15,6 +17,7 @@ const GalleryPage: React.FC = () => {
     const [isPending, startTransition] = useTransition()
     const [selectedImage, setSelectedImage] = useState<CanvasItem | null>(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
+    const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
     const canvasRef = useRef<InfiniteCanvasRef>(null)
     const isMobile = useIsMobile()
 
@@ -65,31 +68,34 @@ const GalleryPage: React.FC = () => {
         setSelectedImage(null)
     }, [])
 
+    // Handle upload modal
+    const handleUploadClick = useCallback(() => {
+        setIsUploadModalOpen(true)
+    }, [])
+
+    const handleUploadModalClose = useCallback(() => {
+        setIsUploadModalOpen(false)
+    }, [])
+
+    const handleUpload = useCallback((uploadData: UploadData) => {
+        console.log('Upload data:', uploadData)
+        // TODO: Implement actual upload logic here
+        // For now, just log the data
+    }, [])
+
     return (
-        <div className="relative w-full h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+        <div className="relative w-full h-screen bg-gradient-to-br from-black via-gray-900 to-black">
             {/* Header Controls */}
             <div className={`absolute top-4 z-10 ${isMobile ? 'left-4 right-4' : 'left-1/2 transform -translate-x-1/2'}`}>
-                <Card className="bg-black/20 backdrop-blur-md border-white/10 p-2">
-                    <CardContent className="p-4 py-0">
+                <Card className="bg-black/20 backdrop-blur-md border-white/10 p-2 rounded-3xl">
+                    <CardContent className="!pl-4 px-0">
                         <div className={`flex items-center ${isMobile ? 'flex-col gap-2' : 'gap-4'}`}>
                             <div className={`text-white font-semibold ${isMobile ? 'text-base' : 'text-lg'}`}>
                                 Memories Gallery
                             </div>
 
                             <div className={`flex items-center ${isMobile ? 'gap-2' : 'gap-4'}`}>
-                                <Button
-                                    variant="outline"
-                                    size={isMobile ? "sm" : "sm"}
-                                    onClick={resetView}
-                                    className="bg-white/10 border-white/20 text-white hover:bg-white/20"
-                                >
-                                    <RotateCcw className="w-4 h-4 mr-2" />
-                                    {isMobile ? 'center' : 'center view'}
-                                </Button>
-
-                                <div className={`text-white/70 ${isMobile ? 'text-xs' : 'text-sm'}`}>
-                                    {isPending ? 'Loading...' : `${items.length} items`}
-                                </div>
+                                <ConnectButton />
                             </div>
                         </div>
                     </CardContent>
@@ -105,6 +111,24 @@ const GalleryPage: React.FC = () => {
                 isPending={isPending}
                 onImageClick={handleImageClick}
             />
+
+            {/* Floating Action Button */}
+            <div className={`fixed z-20 ${isMobile ? 'bottom-40 right-4' : 'bottom-8 right-8'}`}>
+                <div className="relative">
+                    {/* Glow effect */}
+                    <div className={`absolute inset-0 ${isMobile ? 'h-12' : 'h-14'} rounded-full bg-purple-500/30 blur-lg animate-pulse`}></div>
+
+                    {/* Main button */}
+                    <Button
+                        onClick={handleUploadClick}
+                        size={isMobile ? "default" : "lg"}
+                        className={`relative ${isMobile ? 'h-12 px-4' : 'h-14 px-6'} rounded-full bg-black/20 backdrop-blur-md border border-white/20 text-white hover:bg-black/30 hover:border-white/30 shadow-2xl transition-all duration-200 hover:scale-105 active:scale-95 group`}
+                    >
+                        <Plus className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} transition-transform duration-200 group-hover:rotate-90 mr-2`} />
+                        <span className={`font-medium ${isMobile ? 'text-sm' : 'text-base'}`}>add yours</span>
+                    </Button>
+                </div>
+            </div>
 
             {/* Welcome Message */}
             <div className={`absolute ${isMobile ? 'bottom-4 left-4 right-4' : 'bottom-8 left-8 max-w-md'}`}>
@@ -127,7 +151,14 @@ const GalleryPage: React.FC = () => {
                 isOpen={isModalOpen}
                 onClose={handleModalClose}
             />
-        </div>
+
+            {/* Upload Modal */}
+            <UploadModal
+                isOpen={isUploadModalOpen}
+                onClose={handleUploadModalClose}
+                onUpload={handleUpload}
+            />
+        </div >
     )
 }
 

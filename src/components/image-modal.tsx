@@ -96,7 +96,7 @@ const ImageModal: React.FC<ImageModalProps> = ({ item, isOpen, onClose }) => {
                                         <span className={isMobile ? 'text-sm' : 'text-base'}>{details.location}</span>
                                     </div>
 
-                                    <div className="flex items-center gap-3 text-white/80">
+                                    {/* <div className="flex items-center gap-3 text-white/80">
                                         <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
                                             <Camera className="w-4 h-4" />
                                         </div>
@@ -108,11 +108,11 @@ const ImageModal: React.FC<ImageModalProps> = ({ item, isOpen, onClose }) => {
                                             <Heart className="w-4 h-4" />
                                         </div>
                                         <span className={isMobile ? 'text-sm' : 'text-base'}>{details.likes} likes</span>
-                                    </div>
+                                    </div> */}
                                 </div>
 
                                 {/* Tags */}
-                                <div className="border-t border-white/10 pt-4">
+                                {/* <div className="border-t border-white/10 pt-4">
                                     <h3 className={`text-white font-semibold mb-3 ${isMobile ? 'text-base' : 'text-lg'}`}>Tags</h3>
                                     <div className="flex flex-wrap gap-2">
                                         {details.tags.map((tag, index) => (
@@ -125,19 +125,19 @@ const ImageModal: React.FC<ImageModalProps> = ({ item, isOpen, onClose }) => {
                                             </Badge>
                                         ))}
                                     </div>
-                                </div>
+                                </div> */}
 
                                 {/* Actions */}
                                 <div className="border-t border-white/10 pt-6 mt-auto">
                                     <div className="flex gap-3">
-                                        <Button
+                                        {/* <Button
                                             variant="outline"
                                             size={isMobile ? "default" : "lg"}
                                             className="flex-1 bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/30"
                                         >
                                             <Heart className="w-4 h-4 mr-2" />
                                             Like
-                                        </Button>
+                                        </Button> */}
                                         <Button
                                             variant="outline"
                                             size={isMobile ? "default" : "lg"}
