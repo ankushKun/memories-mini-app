@@ -16,7 +16,6 @@ interface UploadModalProps {
 export interface UploadData {
     file: File
     title: string
-    description: string
     location: string
 }
 
@@ -24,7 +23,6 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
     const [previewUrl, setPreviewUrl] = useState<string | null>(null)
     const [title, setTitle] = useState('')
-    const [description, setDescription] = useState('')
     const [location, setLocation] = useState('')
     const [isUploading, setIsUploading] = useState(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
@@ -63,7 +61,6 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
             const uploadData: UploadData = {
                 file: selectedFile,
                 title: title.trim(),
-                description: description.trim(),
                 location: location.trim()
             }
 
@@ -80,7 +77,6 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
         setSelectedFile(null)
         setPreviewUrl(null)
         setTitle('')
-        setDescription('')
         setLocation('')
         setIsUploading(false)
         if (previewUrl) {
@@ -183,22 +179,6 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
                                 onChange={(e) => setTitle(e.target.value)}
                                 className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40"
                                 required
-                            />
-                        </div>
-
-                        {/* Description Input */}
-                        <div className="space-y-2">
-                            <Label htmlFor="description" className="text-white font-medium flex items-center gap-2">
-                                <FileText className="w-4 h-4" />
-                                Description
-                            </Label>
-                            <Textarea
-                                id="description"
-                                placeholder="Tell the story behind this memory..."
-                                value={description}
-                                onChange={(e) => setDescription(e.target.value)}
-                                className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40 min-h-[100px] resize-none"
-                                rows={4}
                             />
                         </div>
 

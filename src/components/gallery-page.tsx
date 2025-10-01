@@ -1,25 +1,40 @@
 import React, { useState, useMemo, useCallback, useRef, useTransition, useEffect } from 'react'
+import { useNavigate } from 'react-router'
 import InfiniteCanvas, { type CanvasItem, type InfiniteCanvasRef } from './infinite-canvas'
 import ImageModal from './image-modal'
-import UploadModal, { type UploadData } from './upload-modal'
 import { generateInfiniteGrid, clearImageUrlCache } from '../utils/generate-grid'
 import { useDebounce } from '../hooks/use-debounce'
 import { useIsMobile } from '../hooks/use-mobile'
 import { Button } from './ui/button'
 import { Card, CardContent } from './ui/card'
-import { RotateCcw, Plus } from 'lucide-react'
-import { ConnectButton } from '@arweave-wallet-kit/react'
+import { Home, Plus, User } from 'lucide-react'
+import { useActiveAddress, useConnection, useProfileModal } from '@arweave-wallet-kit/react'
 
-
+const query = `query {
+    transactions(tags: [{name: "App-Name", values: ["Memories-App"]}]) {
+    edges {
+        cursor
+        node {
+            tags {
+                name
+                value
+            }
+        }
+    }
+    }
+}`
 
 const GalleryPage: React.FC = () => {
     const [itemCount, setItemCount] = useState(1000)
     const [isPending, startTransition] = useTransition()
     const [selectedImage, setSelectedImage] = useState<CanvasItem | null>(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
-    const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
     const canvasRef = useRef<InfiniteCanvasRef>(null)
     const isMobile = useIsMobile()
+    const navigate = useNavigate()
+    const address = useActiveAddress()
+    const { connected } = useConnection()
+    const { setOpen } = useProfileModal()
 
     // Debounce item count changes to prevent rapid re-computations
     const debouncedItemCount = useDebounce(itemCount, 300)
@@ -68,35 +83,46 @@ const GalleryPage: React.FC = () => {
         setSelectedImage(null)
     }, [])
 
-    // Handle upload modal
-    const handleUploadClick = useCallback(() => {
-        setIsUploadModalOpen(true)
-    }, [])
-
-    const handleUploadModalClose = useCallback(() => {
-        setIsUploadModalOpen(false)
-    }, [])
-
-    const handleUpload = useCallback((uploadData: UploadData) => {
-        console.log('Upload data:', uploadData)
-        // TODO: Implement actual upload logic here
-        // For now, just log the data
-    }, [])
+    // Handle navigation to landing page
+    const handleBackToHome = useCallback(() => {
+        navigate('/')
+    }, [navigate])
 
     return (
         <div className="relative w-full h-screen bg-gradient-to-br from-black via-gray-900 to-black">
             {/* Header Controls */}
-            <div className={`absolute top-4 z-10 ${isMobile ? 'left-4 right-4' : 'left-1/2 transform -translate-x-1/2'}`}>
-                <Card className="bg-black/20 backdrop-blur-md border-white/10 p-2 rounded-3xl">
-                    <CardContent className="!pl-4 px-0">
-                        <div className={`flex items-center ${isMobile ? 'flex-col gap-2' : 'gap-4'}`}>
-                            <div className={`text-white font-semibold ${isMobile ? 'text-base' : 'text-lg'}`}>
-                                Memories Gallery
+            <div className="absolute top-4 min-w-1/2 max-w-screen w-[90vw] md:w-fit left-1/2 transform -translate-x-1/2 z-10">
+                <Card className="bg-black/20 backdrop-blur-md border-white/10 rounded-3xl p-0 py-3">
+                    <CardContent className="p-0 px-4">
+                        <div className="flex items-center justify-between">
+                            {/* Left - Home Icon */}
+                            <Button
+                                onClick={handleBackToHome}
+                                variant="ghost"
+                                size="sm"
+                                className="text-white/80 hover:text-white hover:bg-white/10 p-2"
+                            >
+                                <Home className="w-5 h-5" />
+                            </Button>
+
+                            {/* Center - Gallery Title */}
+                            <div className="text-white font-semibold text-lg">
+                                Gallery
                             </div>
 
-                            <div className={`flex items-center ${isMobile ? 'gap-2' : 'gap-4'}`}>
-                                <ConnectButton />
-                            </div>
+                            {/* Right - Profile Icon */}
+                            {connected ? (
+                                <Button
+                                    onClick={() => setOpen(true)}
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-white/80 hover:text-white hover:bg-white/10 p-2"
+                                >
+                                    <User className="w-5 h-5" />
+                                </Button>
+                            ) : (
+                                <div className="w-9 h-9"></div>
+                            )}
                         </div>
                     </CardContent>
                 </Card>
@@ -120,12 +146,12 @@ const GalleryPage: React.FC = () => {
 
                     {/* Main button */}
                     <Button
-                        onClick={handleUploadClick}
+                        onClick={handleBackToHome}
                         size={isMobile ? "default" : "lg"}
                         className={`relative ${isMobile ? 'h-12 px-4' : 'h-14 px-6'} rounded-full bg-black/20 backdrop-blur-md border border-white/20 text-white hover:bg-black/30 hover:border-white/30 shadow-2xl transition-all duration-200 hover:scale-105 active:scale-95 group`}
                     >
                         <Plus className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} transition-transform duration-200 group-hover:rotate-90 mr-2`} />
-                        <span className={`font-medium ${isMobile ? 'text-sm' : 'text-base'}`}>add yours</span>
+                        <span className={`font-medium ${isMobile ? 'text-sm' : 'text-base'}`}>add memory</span>
                     </Button>
                 </div>
             </div>
@@ -152,12 +178,6 @@ const GalleryPage: React.FC = () => {
                 onClose={handleModalClose}
             />
 
-            {/* Upload Modal */}
-            <UploadModal
-                isOpen={isUploadModalOpen}
-                onClose={handleUploadModalClose}
-                onUpload={handleUpload}
-            />
         </div >
     )
 }

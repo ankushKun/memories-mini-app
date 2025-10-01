@@ -9,6 +9,7 @@ import { WAuthProviders } from "@wauth/strategy"
 import AosyncStrategy from "@vela-ventures/aosync-strategy"
 
 import App from './App'
+import GalleryPage from './components/gallery-page';
 
 
 
@@ -39,6 +40,7 @@ function Main() {
         <HashRouter>
           <Routes>
             <Route index element={<App />} />
+            <Route path='gallery' element={<GalleryPage />} />
           </Routes>
         </HashRouter>
       </ThemeProvider>
