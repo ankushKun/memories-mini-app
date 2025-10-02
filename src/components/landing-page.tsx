@@ -10,6 +10,7 @@ import { Textarea } from './ui/textarea'
 import { Label } from './ui/label'
 import { useIsMobile } from '../hooks/use-mobile'
 import { type UploadData } from './upload-modal'
+import ShareModal from './share-modal'
 import imageCompression from 'browser-image-compression';
 import { ArconnectSigner, ArweaveSigner, TurboFactory } from '@ardrive/turbo-sdk/web';
 
@@ -31,7 +32,7 @@ export async function uploadFileTurbo(file: File, api: any, tags: { name: string
         dataItemOpts: {
             tags: [
                 { name: "App-Name", value: "Memories-App" },
-                { name: "App-Version", value: "1.0.0" },
+                { name: "App-Version", value: "1.0.1" },
                 { name: "Content-Type", value: file.type ?? "application/octet-stream" },
                 { name: "Name", value: file.name ?? "unknown" },
                 ...tags
@@ -47,6 +48,8 @@ const LandingPage: React.FC = () => {
     const [title, setTitle] = useState('')
     const [location, setLocation] = useState('')
     const [isUploading, setIsUploading] = useState(false)
+    const [isShareModalOpen, setIsShareModalOpen] = useState(false)
+    const [uploadedImageId, setUploadedImageId] = useState<string>('')
     const fileInputRef = useRef<HTMLInputElement>(null)
     const isMobile = useIsMobile()
     const api = useApi()
@@ -125,8 +128,9 @@ const LandingPage: React.FC = () => {
             const id = await handleImageUpload(selectedFile, uploadData)
             console.log('id', id);
 
-            // Navigate to gallery after successful upload
-            navigate('/gallery')
+            // Store the uploaded image ID and show share modal
+            setUploadedImageId(id)
+            setIsShareModalOpen(true)
         } catch (error) {
             console.error('Upload failed:', error)
         } finally {
@@ -137,6 +141,25 @@ const LandingPage: React.FC = () => {
     const handleExploreGallery = useCallback(() => {
         navigate('/gallery')
     }, [navigate])
+
+    const handleShareModalClose = useCallback(() => {
+        setIsShareModalOpen(false)
+        setUploadedImageId('')
+    }, [])
+
+    const handleContinueToGallery = useCallback(() => {
+        setIsShareModalOpen(false)
+        setUploadedImageId('')
+        // Reset form
+        setSelectedFile(null)
+        setPreviewUrl(null)
+        setTitle('')
+        setLocation('')
+        if (previewUrl) {
+            URL.revokeObjectURL(previewUrl)
+        }
+        navigate('/gallery')
+    }, [navigate, previewUrl])
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black relative overflow-hidden">
@@ -333,6 +356,14 @@ const LandingPage: React.FC = () => {
                     )}
                 </div>
             </div>
+
+            {/* Share Modal */}
+            <ShareModal
+                isOpen={isShareModalOpen}
+                onClose={handleShareModalClose}
+                imageId={uploadedImageId}
+                onContinue={handleContinueToGallery}
+            />
         </div>
     )
 }
