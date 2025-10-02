@@ -21,7 +21,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, imageId, image
         const arweaveUrl = `https://arweave.net/${imageId}`
         const websiteUrl = "memories.ar.io"
 
-        const fullTweetText = `${tweetText}, with a link to ${arweaveUrl}\n\nPreserve yours at ${websiteUrl}`
+        const fullTweetText = `${tweetText} at ${arweaveUrl}`
         const encodedText = encodeURIComponent(fullTweetText)
         const twitterUrl = `https://twitter.com/intent/tweet?text=${encodedText}`
 
@@ -41,7 +41,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, imageId, image
             className={`fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center ${isMobile ? 'p-4' : 'p-8'}`}
             onClick={handleBackdropClick}
         >
-            <Card className={`bg-slate-900/95 border-white/10 w-full overflow-hidden shadow-2xl ${isMobile ? 'max-w-sm rounded-xl' : 'max-w-lg rounded-xl'}`}>
+            <Card className={`bg-slate-900/95 border-white/10 w-full overflow-hidden shadow-2xl ${isMobile ? 'max-w-sm rounded-xl' : 'max-w-xl rounded-xl'}`}>
                 <CardHeader className="border-b border-white/10 pb-4">
                     <div className="flex items-center justify-between">
                         <CardTitle className={`text-white ${isMobile ? 'text-lg' : 'text-xl'}`}>
@@ -66,7 +66,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, imageId, image
                                     <img
                                         src={imageUrl}
                                         alt={imageTitle || "Uploaded memory"}
-                                        className={`rounded-lg shadow-lg object-cover ${isMobile ? 'max-w-[200px] max-h-[250px]' : 'max-w-[250px] max-h-[300px]'}`}
+                                        className={`rounded-lg shadow-lg object-contain ${isMobile ? 'max-w-[280px] max-h-[350px]' : 'max-w-[350px] max-h-[450px]'}`}
                                     />
                                     <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
                                         <span className="text-sm">✨</span>

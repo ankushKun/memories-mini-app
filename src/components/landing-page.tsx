@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react'
+import React, { useState, useRef, useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router'
 import { useActiveAddress, useApi, useConnection, useProfileModal } from '@arweave-wallet-kit/react'
 import { ConnectButton } from '@arweave-wallet-kit/react'
@@ -9,6 +9,7 @@ import { Input } from './ui/input'
 import { Textarea } from './ui/textarea'
 import { Label } from './ui/label'
 import { useIsMobile } from '../hooks/use-mobile'
+import { useDebounce } from '../hooks/use-debounce'
 import { type UploadData } from './upload-modal'
 import ShareModal from './share-modal'
 import { createPolaroidImage } from '../utils/polaroid-generator'
@@ -62,15 +63,29 @@ const LandingPage: React.FC = () => {
     const { connected, connect, disconnect } = useConnection()
     const { setOpen } = useProfileModal()
 
-    const generatePolaroid = async (file: File) => {
+    // Debounce title and location for polaroid regeneration
+    const debouncedTitle = useDebounce(title, 500)
+    const debouncedLocation = useDebounce(location, 500)
+
+    // Regenerate polaroid when debounced title or location changes
+    useEffect(() => {
+        if (selectedFile && (debouncedTitle || debouncedLocation) && !isGeneratingPolaroid) {
+            generatePolaroid(selectedFile, debouncedTitle, debouncedLocation)
+        }
+    }, [debouncedTitle, debouncedLocation, selectedFile])
+
+    const generatePolaroid = async (file: File, currentTitle?: string, currentLocation?: string) => {
         setIsGeneratingPolaroid(true)
         try {
             const { blob, dataUrl } = await createPolaroidImage(file, {
-                width: isMobile ? 300 : 400,
-                height: isMobile ? 375 : 500,
+                maxWidth: isMobile ? 400 : 600,
+                maxHeight: isMobile ? 600 : 800,
                 borderWidth: isMobile ? 15 : 20,
                 textHeight: isMobile ? 60 : 80,
-                fontSize: isMobile ? 14 : 16
+                fontSize: isMobile ? 14 : 16,
+                isMobile,
+                title: currentTitle?.trim() || title.trim(),
+                location: currentLocation?.trim() || location.trim()
             })
 
             // Create a File object from the blob
@@ -183,6 +198,14 @@ const LandingPage: React.FC = () => {
         setUploadedImageId('')
     }, [])
 
+    const handleTitleChange = (newTitle: string) => {
+        setTitle(newTitle)
+    }
+
+    const handleLocationChange = (newLocation: string) => {
+        setLocation(newLocation)
+    }
+
     const handleContinueToGallery = useCallback(() => {
         setIsShareModalOpen(false)
         setUploadedImageId('')
@@ -227,7 +250,7 @@ const LandingPage: React.FC = () => {
 
             {/* Main Content */}
             <div className="relative z-10 flex items-center justify-center min-h-[calc(100vh-120px)] px-4 py-8 md:px-8 md:py-16">
-                <div className="w-full max-w-sm md:max-w-4xl">
+                <div className="w-full max-w-md md:max-w-4xl">
                     {!connected ? (
                         /* Welcome Section - Not Connected */
                         <div className="text-center space-y-6 md:space-y-8">
@@ -284,7 +307,7 @@ const LandingPage: React.FC = () => {
                             </div>
 
                             {/* Upload Form */}
-                            <Card className="bg-white/5 border-white/10 backdrop-blur-sm w-full max-w-md mx-auto">
+                            <Card className="bg-white/5 border-white/10 backdrop-blur-sm w-full max-w-lg mx-auto">
                                 <CardHeader className="text-center pb-4">
                                     <CardTitle className="text-white text-lg md:text-xl">Upload a Memory</CardTitle>
                                 </CardHeader>
@@ -296,7 +319,7 @@ const LandingPage: React.FC = () => {
                                                 Image
                                             </Label>
                                             <div
-                                                className={`border-2 border-dashed border-white/20 rounded-lg p-4 md:p-6 text-center hover:border-white/40 transition-colors cursor-pointer ${selectedFile ? 'bg-white/5' : 'bg-white/5'}`}
+                                                className={`border-2 border-dashed border-white/20 rounded-lg p-6 md:p-8 text-center hover:border-white/40 transition-colors cursor-pointer ${selectedFile ? 'bg-white/5' : 'bg-white/5'}`}
                                                 onDragOver={handleDragOver}
                                                 onDrop={handleDrop}
                                                 onClick={() => fileInputRef.current?.click()}
@@ -304,22 +327,34 @@ const LandingPage: React.FC = () => {
                                                 {polaroidPreviewUrl || previewUrl ? (
                                                     <div className="space-y-3">
                                                         {isGeneratingPolaroid ? (
-                                                            <div className="space-y-2">
-                                                                <div className="w-16 h-20 md:w-20 md:h-25 mx-auto bg-white/10 rounded-lg flex items-center justify-center">
-                                                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                                            <div className="space-y-3">
+                                                                <div className="w-32 h-40 md:w-40 md:h-50 mx-auto bg-white/10 rounded-lg flex items-center justify-center border border-white/20">
+                                                                    <div className="text-center space-y-3">
+                                                                        <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto"></div>
+                                                                        <p className="text-white/70 text-xs">
+                                                                            Creating polaroid...
+                                                                        </p>
+                                                                    </div>
                                                                 </div>
-                                                                <p className="text-white/70 text-xs">
-                                                                    Creating polaroid...
-                                                                </p>
                                                             </div>
                                                         ) : (
                                                             <>
-                                                                <img
-                                                                    src={polaroidPreviewUrl || previewUrl}
-                                                                    alt="Preview"
-                                                                    className="max-h-24 md:max-h-32 mx-auto rounded-lg object-cover shadow-lg"
-                                                                />
-                                                                <p className="text-white/70 text-xs md:text-sm">
+                                                                <div className="relative mx-auto w-fit">
+                                                                    {polaroidPreviewUrl && (
+                                                                        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-lg blur-xl -z-10 scale-110"></div>
+                                                                    )}
+                                                                    <img
+                                                                        src={polaroidPreviewUrl || previewUrl}
+                                                                        alt="Preview"
+                                                                        className="max-h-48 md:max-h-64 max-w-[280px] md:max-w-[350px] mx-auto rounded-lg object-contain shadow-2xl border border-white/20 relative z-10"
+                                                                    />
+                                                                    {polaroidPreviewUrl && (
+                                                                        <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg z-20">
+                                                                            <span className="text-xs">✨</span>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                                <p className="text-white/70 text-xs md:text-sm mt-3">
                                                                     Click to change image
                                                                 </p>
                                                             </>
@@ -362,7 +397,7 @@ const LandingPage: React.FC = () => {
                                                 type="text"
                                                 placeholder="Give your memory a title..."
                                                 value={title}
-                                                onChange={(e) => setTitle(e.target.value)}
+                                                onChange={(e) => handleTitleChange(e.target.value)}
                                                 className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40 text-sm"
                                                 required
                                             />
@@ -379,7 +414,7 @@ const LandingPage: React.FC = () => {
                                                 type="text"
                                                 placeholder="Where was this captured?"
                                                 value={location}
-                                                onChange={(e) => setLocation(e.target.value)}
+                                                onChange={(e) => handleLocationChange(e.target.value)}
                                                 className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40 text-sm"
                                                 required
                                             />
