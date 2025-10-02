@@ -8,21 +8,23 @@ interface ShareModalProps {
     isOpen: boolean
     onClose: () => void
     imageId: string
+    imageUrl?: string
+    imageTitle?: string
     onContinue: () => void
 }
 
-const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, imageId, onContinue }) => {
+const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, imageId, imageUrl, imageTitle, onContinue }) => {
     const isMobile = useIsMobile()
 
     const handleShareOnX = () => {
         const tweetText = "I just preserved my most cherished memory on Arweave"
         const arweaveUrl = `https://arweave.net/${imageId}`
         const websiteUrl = "memories.ar.io"
-        
+
         const fullTweetText = `${tweetText}, with a link to ${arweaveUrl}\n\nPreserve yours at ${websiteUrl}`
         const encodedText = encodeURIComponent(fullTweetText)
         const twitterUrl = `https://twitter.com/intent/tweet?text=${encodedText}`
-        
+
         window.open(twitterUrl, '_blank', 'noopener,noreferrer')
     }
 
@@ -39,7 +41,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, imageId, onCon
             className={`fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center ${isMobile ? 'p-4' : 'p-8'}`}
             onClick={handleBackdropClick}
         >
-            <Card className={`bg-slate-900/95 border-white/10 w-full overflow-hidden shadow-2xl ${isMobile ? 'max-w-sm rounded-xl' : 'max-w-md rounded-xl'}`}>
+            <Card className={`bg-slate-900/95 border-white/10 w-full overflow-hidden shadow-2xl ${isMobile ? 'max-w-sm rounded-xl' : 'max-w-lg rounded-xl'}`}>
                 <CardHeader className="border-b border-white/10 pb-4">
                     <div className="flex items-center justify-between">
                         <CardTitle className={`text-white ${isMobile ? 'text-lg' : 'text-xl'}`}>
@@ -58,10 +60,30 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, imageId, onCon
 
                 <CardContent className={`${isMobile ? 'p-4 space-y-4' : 'p-6 space-y-6'}`}>
                     <div className="text-center space-y-4">
-                        <div className="w-16 h-16 mx-auto bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                            <span className="text-2xl">✨</span>
-                        </div>
-                        
+                        {imageUrl ? (
+                            <div className="space-y-3">
+                                <div className="relative mx-auto w-fit">
+                                    <img
+                                        src={imageUrl}
+                                        alt={imageTitle || "Uploaded memory"}
+                                        className={`rounded-lg shadow-lg object-cover ${isMobile ? 'max-w-[200px] max-h-[250px]' : 'max-w-[250px] max-h-[300px]'}`}
+                                    />
+                                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
+                                        <span className="text-sm">✨</span>
+                                    </div>
+                                </div>
+                                {imageTitle && (
+                                    <p className="text-white/80 text-sm font-medium">
+                                        "{imageTitle}"
+                                    </p>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="w-16 h-16 mx-auto bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                                <span className="text-2xl">✨</span>
+                            </div>
+                        )}
+
                         <div className="space-y-2">
                             <h3 className="text-white font-semibold text-lg">
                                 Your memory is now preserved forever!
@@ -83,7 +105,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, imageId, onCon
                         <p className="text-white/80 text-sm text-center">
                             Share your achievement with the world!
                         </p>
-                        
+
                         <Button
                             onClick={handleShareOnX}
                             className="w-full bg-black hover:bg-gray-900 text-white border border-white/20 h-12 text-base font-medium"

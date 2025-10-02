@@ -11,6 +11,7 @@ import { Label } from './ui/label'
 import { useIsMobile } from '../hooks/use-mobile'
 import { type UploadData } from './upload-modal'
 import ShareModal from './share-modal'
+import { createPolaroidImage } from '../utils/polaroid-generator'
 import imageCompression from 'browser-image-compression';
 import { ArconnectSigner, ArweaveSigner, TurboFactory } from '@ardrive/turbo-sdk/web';
 
@@ -45,6 +46,9 @@ export async function uploadFileTurbo(file: File, api: any, tags: { name: string
 const LandingPage: React.FC = () => {
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
     const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+    const [polaroidFile, setPolaroidFile] = useState<File | null>(null)
+    const [polaroidPreviewUrl, setPolaroidPreviewUrl] = useState<string | null>(null)
+    const [isGeneratingPolaroid, setIsGeneratingPolaroid] = useState(false)
     const [title, setTitle] = useState('')
     const [location, setLocation] = useState('')
     const [isUploading, setIsUploading] = useState(false)
@@ -58,9 +62,37 @@ const LandingPage: React.FC = () => {
     const { connected, connect, disconnect } = useConnection()
     const { setOpen } = useProfileModal()
 
+    const generatePolaroid = async (file: File) => {
+        setIsGeneratingPolaroid(true)
+        try {
+            const { blob, dataUrl } = await createPolaroidImage(file, {
+                width: isMobile ? 300 : 400,
+                height: isMobile ? 375 : 500,
+                borderWidth: isMobile ? 15 : 20,
+                textHeight: isMobile ? 60 : 80,
+                fontSize: isMobile ? 14 : 16
+            })
+
+            // Create a File object from the blob
+            const polaroidFileName = file.name.replace(/\.[^/.]+$/, '_polaroid.png')
+            const polaroidFileObj = new File([blob], polaroidFileName, {
+                type: 'image/png',
+                lastModified: Date.now()
+            })
+
+            setPolaroidFile(polaroidFileObj)
+            setPolaroidPreviewUrl(dataUrl)
+        } catch (error) {
+            console.error('Failed to generate polaroid:', error)
+        } finally {
+            setIsGeneratingPolaroid(false)
+        }
+    }
+
     async function handleImageUpload(file: File, uploadData: UploadData): Promise<string> {
         if (!api) throw new Error('Wallet not initialized not found');
-        const imageFile = file;
+        // Use polaroid file if available, otherwise use original file
+        const imageFile = polaroidFile || file;
         console.log('originalFile instanceof Blob', imageFile instanceof Blob); // true
         console.log(`originalFile size ${imageFile.size / 1024 / 1024} MB`);
 
@@ -90,6 +122,8 @@ const LandingPage: React.FC = () => {
             setSelectedFile(file)
             const url = URL.createObjectURL(file)
             setPreviewUrl(url)
+            // Generate polaroid version
+            generatePolaroid(file)
         }
     }
 
@@ -104,6 +138,8 @@ const LandingPage: React.FC = () => {
             setSelectedFile(file)
             const url = URL.createObjectURL(file)
             setPreviewUrl(url)
+            // Generate polaroid version
+            generatePolaroid(file)
         }
     }
 
@@ -153,13 +189,18 @@ const LandingPage: React.FC = () => {
         // Reset form
         setSelectedFile(null)
         setPreviewUrl(null)
+        setPolaroidFile(null)
+        setPolaroidPreviewUrl(null)
         setTitle('')
         setLocation('')
         if (previewUrl) {
             URL.revokeObjectURL(previewUrl)
         }
+        if (polaroidPreviewUrl) {
+            URL.revokeObjectURL(polaroidPreviewUrl)
+        }
         navigate('/gallery')
-    }, [navigate, previewUrl])
+    }, [navigate, previewUrl, polaroidPreviewUrl])
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black relative overflow-hidden">
@@ -260,16 +301,29 @@ const LandingPage: React.FC = () => {
                                                 onDrop={handleDrop}
                                                 onClick={() => fileInputRef.current?.click()}
                                             >
-                                                {previewUrl ? (
+                                                {polaroidPreviewUrl || previewUrl ? (
                                                     <div className="space-y-3">
-                                                        <img
-                                                            src={previewUrl}
-                                                            alt="Preview"
-                                                            className="max-h-24 md:max-h-32 mx-auto rounded-lg object-cover"
-                                                        />
-                                                        <p className="text-white/70 text-xs md:text-sm">
-                                                            Click to change image
-                                                        </p>
+                                                        {isGeneratingPolaroid ? (
+                                                            <div className="space-y-2">
+                                                                <div className="w-16 h-20 md:w-20 md:h-25 mx-auto bg-white/10 rounded-lg flex items-center justify-center">
+                                                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                                                </div>
+                                                                <p className="text-white/70 text-xs">
+                                                                    Creating polaroid...
+                                                                </p>
+                                                            </div>
+                                                        ) : (
+                                                            <>
+                                                                <img
+                                                                    src={polaroidPreviewUrl || previewUrl}
+                                                                    alt="Preview"
+                                                                    className="max-h-24 md:max-h-32 mx-auto rounded-lg object-cover shadow-lg"
+                                                                />
+                                                                <p className="text-white/70 text-xs md:text-sm">
+                                                                    Click to change image
+                                                                </p>
+                                                            </>
+                                                        )}
                                                     </div>
                                                 ) : (
                                                     <div className="space-y-3">
@@ -335,7 +389,7 @@ const LandingPage: React.FC = () => {
                                         <Button
                                             type="submit"
                                             className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 h-10 md:h-12 text-sm md:text-base"
-                                            disabled={!selectedFile || !title.trim() || !location.trim() || isUploading}
+                                            disabled={!selectedFile || !title.trim() || !location.trim() || isUploading || isGeneratingPolaroid}
                                         >
                                             {isUploading ? (
                                                 <>
@@ -362,6 +416,8 @@ const LandingPage: React.FC = () => {
                 isOpen={isShareModalOpen}
                 onClose={handleShareModalClose}
                 imageId={uploadedImageId}
+                imageUrl={polaroidPreviewUrl || previewUrl || undefined}
+                imageTitle={title}
                 onContinue={handleContinueToGallery}
             />
         </div>
