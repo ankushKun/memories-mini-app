@@ -18,9 +18,14 @@ import { ArconnectSigner, ArweaveSigner, TurboFactory } from '@ardrive/turbo-sdk
 
 
 const options = {
-    maxSizeMB: 0.1,
-    maxWidthOrHeight: 1920,
+    maxSizeMB: 0.1, // Hard limit of 100KB
+    maxWidthOrHeight: 1200, // Balanced resolution for quality vs size
     useWebWorker: true,
+    initialQuality: 0.9, // High quality starting point
+    maxIteration: 30, // More iterations to find optimal balance
+    fileType: 'image/jpeg', // JPEG for better compression
+    alwaysKeepResolution: false, // Allow smart resolution adjustment
+    preserveExif: false, // Remove EXIF data to save space
 }
 
 export async function uploadFileTurbo(file: File, api: any, tags: { name: string, value: string }[] = []) {
@@ -78,20 +83,20 @@ const LandingPage: React.FC = () => {
         setIsGeneratingPolaroid(true)
         try {
             const { blob, dataUrl } = await createPolaroidImage(file, {
-                maxWidth: isMobile ? 400 : 600,
-                maxHeight: isMobile ? 600 : 800,
-                borderWidth: isMobile ? 15 : 20,
-                textHeight: isMobile ? 60 : 80,
-                fontSize: isMobile ? 14 : 16,
+                maxWidth: isMobile ? 500 : 600, // Optimized for compression
+                maxHeight: isMobile ? 650 : 750, // Optimized for compression
+                borderWidth: isMobile ? 18 : 25, // Clean borders
+                textHeight: isMobile ? 70 : 90, // Adequate text space
+                fontSize: isMobile ? 15 : 18, // Clear but efficient text
                 isMobile,
                 title: currentTitle?.trim() || title.trim(),
                 location: currentLocation?.trim() || location.trim()
             })
 
             // Create a File object from the blob
-            const polaroidFileName = file.name.replace(/\.[^/.]+$/, '_polaroid.png')
+            const polaroidFileName = file.name.replace(/\.[^/.]+$/, '_polaroid.jpg')
             const polaroidFileObj = new File([blob], polaroidFileName, {
-                type: 'image/png',
+                type: 'image/jpeg',
                 lastModified: Date.now()
             })
 
@@ -112,15 +117,18 @@ const LandingPage: React.FC = () => {
         console.log(`originalFile size ${imageFile.size / 1024 / 1024} MB`);
 
         try {
-            const compressedFile = await imageCompression(imageFile, options);
-            console.log('compressedFile instanceof Blob', compressedFile instanceof Blob); // true
-            console.log(`compressedFile size ${compressedFile.size / 1024 / 1024} MB`); // smaller than maxSizeMB
+            // Always compress to meet the 100KB hard limit, but with optimized settings
+            console.log('Compressing image to meet 100KB limit with optimal quality...');
+            const finalFile = await imageCompression(imageFile, options);
+            console.log('compressedFile instanceof Blob', finalFile instanceof Blob); // true
+            console.log(`compressedFile size ${finalFile.size / 1024} KB`);
+
             const extraTags = [
                 { name: "Title", value: uploadData.title },
                 { name: "Location", value: uploadData.location },
             ]
 
-            const id = await uploadFileTurbo(compressedFile, api, extraTags); // write your own logic
+            const id = await uploadFileTurbo(finalFile, api, extraTags);
             console.log('id', id);
             return id;
         } catch (error) {

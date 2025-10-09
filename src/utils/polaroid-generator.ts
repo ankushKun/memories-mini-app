@@ -130,6 +130,10 @@ export const createPolaroidImage = (
                 canvas.width = canvasWidth
                 canvas.height = canvasHeight
 
+                // Enable high-quality image rendering
+                ctx.imageSmoothingEnabled = true
+                ctx.imageSmoothingQuality = 'high'
+
                 // Fill background (polaroid border)
                 ctx.fillStyle = backgroundColor
                 ctx.fillRect(0, 0, canvasWidth, canvasHeight)
@@ -187,15 +191,15 @@ export const createPolaroidImage = (
                 const brandY = canvasHeight - 15 // Always at the bottom
                 ctx.fillText('memories.ar.io', textAreaCenter, brandY)
 
-                // Convert to blob and data URL
+                // Convert to blob and data URL - use JPEG for better compression
                 canvas.toBlob((blob) => {
                     if (blob) {
-                        const dataUrl = canvas.toDataURL('image/png')
+                        const dataUrl = canvas.toDataURL('image/jpeg', 0.92) // High quality JPEG
                         resolve({ blob, dataUrl })
                     } else {
                         reject(new Error('Failed to create blob from canvas'))
                     }
-                }, 'image/png', 0.9)
+                }, 'image/jpeg', 0.92) // High quality JPEG for better compression
             } catch (error) {
                 reject(error)
             }
