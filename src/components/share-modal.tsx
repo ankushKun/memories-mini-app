@@ -57,7 +57,6 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, imageId, image
                         </Button>
                     </div>
                 </CardHeader>
-
                 <CardContent className={`${isMobile ? 'p-4 space-y-4' : 'p-6 space-y-6'}`}>
                     <div className="text-center space-y-4">
                         {imageUrl ? (
@@ -68,9 +67,6 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, imageId, image
                                         alt={imageTitle || "Uploaded memory"}
                                         className={`rounded-lg shadow-lg object-contain ${isMobile ? 'max-w-[280px] max-h-[350px]' : 'max-w-[350px] max-h-[450px]'}`}
                                     />
-                                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
-                                        <span className="text-sm">✨</span>
-                                    </div>
                                 </div>
                                 {imageTitle && (
                                     <p className="text-white/80 text-sm font-medium">

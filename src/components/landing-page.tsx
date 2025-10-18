@@ -2,22 +2,19 @@ import React, { useState, useRef, useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router'
 import { useActiveAddress, useApi, useConnection, useProfileModal } from '@arweave-wallet-kit/react'
 import { ConnectButton } from '@arweave-wallet-kit/react'
-import { Upload, Image as ImageIcon, FileText, MapPin, Sparkles, ArrowRight, LogOut } from 'lucide-react'
+import { Upload, Image as ImageIcon, FileText, MapPin, Sparkles, ArrowRight, LogOut, Images } from 'lucide-react'
 import { Button } from './ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Input } from './ui/input'
 import { Textarea } from './ui/textarea'
 import { Label } from './ui/label'
 import { useIsMobile } from '../hooks/use-mobile'
-import { useDebounce } from '../hooks/use-debounce'
 import { type UploadData } from './upload-modal'
-import ShareModal from './share-modal'
-import { createPolaroidImage } from '../utils/polaroid-generator'
 import imageCompression from 'browser-image-compression';
 import { ArconnectSigner, ArweaveSigner, TurboFactory } from '@ardrive/turbo-sdk/web';
 
 
-const options = {
+const compressionOptions = {
     maxSizeMB: 0.1, // Hard limit of 100KB
     maxWidthOrHeight: 1200, // Balanced resolution for quality vs size
     useWebWorker: true,
@@ -52,14 +49,9 @@ export async function uploadFileTurbo(file: File, api: any, tags: { name: string
 const LandingPage: React.FC = () => {
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
     const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-    const [polaroidFile, setPolaroidFile] = useState<File | null>(null)
-    const [polaroidPreviewUrl, setPolaroidPreviewUrl] = useState<string | null>(null)
-    const [isGeneratingPolaroid, setIsGeneratingPolaroid] = useState(false)
     const [title, setTitle] = useState('')
     const [location, setLocation] = useState('')
     const [isUploading, setIsUploading] = useState(false)
-    const [isShareModalOpen, setIsShareModalOpen] = useState(false)
-    const [uploadedImageId, setUploadedImageId] = useState<string>('')
     const fileInputRef = useRef<HTMLInputElement>(null)
     const isMobile = useIsMobile()
     const api = useApi()
@@ -68,60 +60,26 @@ const LandingPage: React.FC = () => {
     const { connected, connect, disconnect } = useConnection()
     const { setOpen } = useProfileModal()
 
-    // Debounce title and location for polaroid regeneration
-    const debouncedTitle = useDebounce(title, 500)
-    const debouncedLocation = useDebounce(location, 500)
 
-    // Regenerate polaroid when debounced title or location changes
-    useEffect(() => {
-        if (selectedFile && (debouncedTitle || debouncedLocation) && !isGeneratingPolaroid) {
-            generatePolaroid(selectedFile, debouncedTitle, debouncedLocation)
-        }
-    }, [debouncedTitle, debouncedLocation, selectedFile])
-
-    const generatePolaroid = async (file: File, currentTitle?: string, currentLocation?: string) => {
-        setIsGeneratingPolaroid(true)
-        try {
-            const { blob, dataUrl } = await createPolaroidImage(file, {
-                maxWidth: isMobile ? 500 : 600, // Optimized for compression
-                maxHeight: isMobile ? 650 : 750, // Optimized for compression
-                borderWidth: isMobile ? 18 : 25, // Clean borders
-                textHeight: isMobile ? 70 : 90, // Adequate text space
-                fontSize: isMobile ? 15 : 18, // Clear but efficient text
-                isMobile,
-                title: currentTitle?.trim() || title.trim(),
-                location: currentLocation?.trim() || location.trim()
-            })
-
-            // Create a File object from the blob
-            const polaroidFileName = file.name.replace(/\.[^/.]+$/, '_polaroid.jpg')
-            const polaroidFileObj = new File([blob], polaroidFileName, {
-                type: 'image/jpeg',
-                lastModified: Date.now()
-            })
-
-            setPolaroidFile(polaroidFileObj)
-            setPolaroidPreviewUrl(dataUrl)
-        } catch (error) {
-            console.error('Failed to generate polaroid:', error)
-        } finally {
-            setIsGeneratingPolaroid(false)
-        }
-    }
 
     async function handleImageUpload(file: File, uploadData: UploadData): Promise<string> {
         if (!api) throw new Error('Wallet not initialized not found');
-        // Use polaroid file if available, otherwise use original file
-        const imageFile = polaroidFile || file;
-        console.log('originalFile instanceof Blob', imageFile instanceof Blob); // true
-        console.log(`originalFile size ${imageFile.size / 1024 / 1024} MB`);
+
+        console.log('originalFile instanceof Blob', file instanceof Blob); // true
+        console.log(`originalFile size ${file.size / 1024 / 1024} MB`);
 
         try {
-            // Always compress to meet the 100KB hard limit, but with optimized settings
-            console.log('Compressing image to meet 100KB limit with optimal quality...');
-            const finalFile = await imageCompression(imageFile, options);
-            console.log('compressedFile instanceof Blob', finalFile instanceof Blob); // true
-            console.log(`compressedFile size ${finalFile.size / 1024} KB`);
+            let finalFile = file;
+
+            // Only compress if file is larger than 100KB
+            if (file.size > 100 * 1024) {
+                console.log('File is larger than 100KB, compressing...');
+                finalFile = await imageCompression(file, compressionOptions);
+                console.log('compressedFile instanceof Blob', finalFile instanceof Blob); // true
+                console.log(`compressedFile size ${finalFile.size / 1024} KB`);
+            } else {
+                console.log('File is under 100KB, uploading as-is');
+            }
 
             const extraTags = [
                 { name: "Title", value: uploadData.title },
@@ -135,7 +93,6 @@ const LandingPage: React.FC = () => {
             console.log(error);
             return '';
         }
-
     }
 
 
@@ -145,8 +102,6 @@ const LandingPage: React.FC = () => {
             setSelectedFile(file)
             const url = URL.createObjectURL(file)
             setPreviewUrl(url)
-            // Generate polaroid version
-            generatePolaroid(file)
         }
     }
 
@@ -161,8 +116,6 @@ const LandingPage: React.FC = () => {
             setSelectedFile(file)
             const url = URL.createObjectURL(file)
             setPreviewUrl(url)
-            // Generate polaroid version
-            generatePolaroid(file)
         }
     }
 
@@ -187,9 +140,8 @@ const LandingPage: React.FC = () => {
             const id = await handleImageUpload(selectedFile, uploadData)
             console.log('id', id);
 
-            // Store the uploaded image ID and show share modal
-            setUploadedImageId(id)
-            setIsShareModalOpen(true)
+            // Redirect to the uploaded page
+            navigate(`/uploaded/${id}`)
         } catch (error) {
             console.error('Upload failed:', error)
         } finally {
@@ -201,11 +153,6 @@ const LandingPage: React.FC = () => {
         navigate('/gallery')
     }, [navigate])
 
-    const handleShareModalClose = useCallback(() => {
-        setIsShareModalOpen(false)
-        setUploadedImageId('')
-    }, [])
-
     const handleTitleChange = (newTitle: string) => {
         setTitle(newTitle)
     }
@@ -213,25 +160,6 @@ const LandingPage: React.FC = () => {
     const handleLocationChange = (newLocation: string) => {
         setLocation(newLocation)
     }
-
-    const handleContinueToGallery = useCallback(() => {
-        setIsShareModalOpen(false)
-        setUploadedImageId('')
-        // Reset form
-        setSelectedFile(null)
-        setPreviewUrl(null)
-        setPolaroidFile(null)
-        setPolaroidPreviewUrl(null)
-        setTitle('')
-        setLocation('')
-        if (previewUrl) {
-            URL.revokeObjectURL(previewUrl)
-        }
-        if (polaroidPreviewUrl) {
-            URL.revokeObjectURL(polaroidPreviewUrl)
-        }
-        navigate('/gallery')
-    }, [navigate, previewUrl, polaroidPreviewUrl])
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black relative overflow-hidden">
@@ -275,14 +203,24 @@ const LandingPage: React.FC = () => {
                             </div>
 
                             <div className="flex flex-col items-center gap-4 md:gap-6">
-                                <div className="relative">
-                                    <div className="absolute inset-0 bg-purple-500/30 blur-lg rounded-full animate-pulse"></div>
-                                    <Button className="cursor-pointer relative px-8 py-3 text-base font-medium" onClick={() => connect()}>
-                                        Login
+                                <div className="flex flex-col sm:flex-row items-center gap-3 md:gap-4">
+                                    <div className="relative">
+                                        <div className="absolute inset-0 bg-purple-500/30 blur-lg rounded-full animate-pulse"></div>
+                                        <Button className="cursor-pointer relative px-8 py-3 text-base font-medium" onClick={() => connect()}>
+                                            Login
+                                        </Button>
+                                    </div>
+                                    <Button
+                                        variant="outline"
+                                        className="px-8 py-3 text-base font-medium bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/30"
+                                        onClick={handleExploreGallery}
+                                    >
+                                        <Images className="w-4 h-4 mr-2" />
+                                        View Gallery
                                     </Button>
                                 </div>
-                                <p className="text-white/60 text-xs md:text-sm">
-                                    Connect your wallet to start uploading memories
+                                <p className="text-white/60 text-xs md:text-sm text-center">
+                                    Connect your wallet to start uploading memories, or explore existing ones
                                 </p>
                             </div>
                         </div>
@@ -332,41 +270,18 @@ const LandingPage: React.FC = () => {
                                                 onDrop={handleDrop}
                                                 onClick={() => fileInputRef.current?.click()}
                                             >
-                                                {polaroidPreviewUrl || previewUrl ? (
+                                                {previewUrl ? (
                                                     <div className="space-y-3">
-                                                        {isGeneratingPolaroid ? (
-                                                            <div className="space-y-3">
-                                                                <div className="w-32 h-40 md:w-40 md:h-50 mx-auto bg-white/10 rounded-lg flex items-center justify-center border border-white/20">
-                                                                    <div className="text-center space-y-3">
-                                                                        <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin mx-auto"></div>
-                                                                        <p className="text-white/70 text-xs">
-                                                                            Creating polaroid...
-                                                                        </p>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        ) : (
-                                                            <>
-                                                                <div className="relative mx-auto w-fit">
-                                                                    {polaroidPreviewUrl && (
-                                                                        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-lg blur-xl -z-10 scale-110"></div>
-                                                                    )}
-                                                                    <img
-                                                                        src={polaroidPreviewUrl || previewUrl}
-                                                                        alt="Preview"
-                                                                        className="max-h-48 md:max-h-64 max-w-[280px] md:max-w-[350px] mx-auto rounded-lg object-contain shadow-2xl border border-white/20 relative z-10"
-                                                                    />
-                                                                    {polaroidPreviewUrl && (
-                                                                        <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg z-20">
-                                                                            <span className="text-xs">✨</span>
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                                <p className="text-white/70 text-xs md:text-sm mt-3">
-                                                                    Click to change image
-                                                                </p>
-                                                            </>
-                                                        )}
+                                                        <div className="relative mx-auto w-fit">
+                                                            <img
+                                                                src={previewUrl}
+                                                                alt="Preview"
+                                                                className="max-h-48 md:max-h-64 max-w-[280px] md:max-w-[350px] mx-auto rounded-lg object-contain shadow-2xl border border-white/20"
+                                                            />
+                                                        </div>
+                                                        <p className="text-white/70 text-xs md:text-sm mt-3">
+                                                            Click to change image
+                                                        </p>
                                                     </div>
                                                 ) : (
                                                     <div className="space-y-3">
@@ -432,7 +347,7 @@ const LandingPage: React.FC = () => {
                                         <Button
                                             type="submit"
                                             className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 h-10 md:h-12 text-sm md:text-base"
-                                            disabled={!selectedFile || !title.trim() || !location.trim() || isUploading || isGeneratingPolaroid}
+                                            disabled={!selectedFile || !title.trim() || !location.trim() || isUploading}
                                         >
                                             {isUploading ? (
                                                 <>
@@ -447,6 +362,18 @@ const LandingPage: React.FC = () => {
                                             )}
                                         </Button>
                                     </form>
+
+                                    {/* View Gallery Button */}
+                                    <div className="pt-4 border-t border-white/10">
+                                        <Button
+                                            onClick={handleExploreGallery}
+                                            variant="outline"
+                                            className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/30 h-10 md:h-12 text-sm md:text-base"
+                                        >
+                                            <Images className="w-3 h-3 md:w-4 md:h-4 mr-2" />
+                                            View Gallery
+                                        </Button>
+                                    </div>
                                 </CardContent>
                             </Card>
                         </div>
@@ -454,15 +381,6 @@ const LandingPage: React.FC = () => {
                 </div>
             </div>
 
-            {/* Share Modal */}
-            <ShareModal
-                isOpen={isShareModalOpen}
-                onClose={handleShareModalClose}
-                imageId={uploadedImageId}
-                imageUrl={polaroidPreviewUrl || previewUrl || undefined}
-                imageTitle={title}
-                onContinue={handleContinueToGallery}
-            />
         </div>
     )
 }

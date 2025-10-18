@@ -1,0 +1,263 @@
+import React, { useEffect, useState } from 'react'
+import { Check, Twitter, Copy, X } from 'lucide-react'
+import { Button } from './ui/button'
+import { Card, CardContent } from './ui/card'
+import { useIsMobile } from '../hooks/use-mobile'
+
+interface CopySharePopupProps {
+    isOpen: boolean
+    onClose: () => void
+    polaroidBlob: Blob | null
+    tweetText: string
+    onTwitterOpen?: () => void
+}
+
+const CopySharePopup: React.FC<CopySharePopupProps> = ({
+    isOpen,
+    onClose,
+    polaroidBlob,
+    tweetText,
+    onTwitterOpen
+}) => {
+    const isMobile = useIsMobile()
+    const [status, setStatus] = useState<'copying' | 'copied' | 'countdown' | 'error'>('copying')
+    const [countdown, setCountdown] = useState<number>(6)
+    const [errorMessage, setErrorMessage] = useState<string>('')
+
+    useEffect(() => {
+        if (!isOpen) {
+            // Reset state when popup closes
+            setStatus('copying')
+            setCountdown(6)
+            setErrorMessage('')
+            return
+        }
+
+        // Start the copy process when popup opens
+        handleCopyToClipboard()
+    }, [isOpen])
+
+    const handleCopyToClipboard = async () => {
+        if (!polaroidBlob) {
+            setStatus('error')
+            setErrorMessage('No image available to copy')
+            return
+        }
+
+        try {
+            setStatus('copying')
+
+            // Check if clipboard API is supported
+            if (!navigator.clipboard || !navigator.clipboard.write) {
+                throw new Error('Clipboard API not supported in this browser')
+            }
+
+            // Copy the polaroid image to clipboard
+            navigator.clipboard.write([
+                new ClipboardItem({
+                    'image/png': polaroidBlob
+                })
+            ]);
+
+            setStatus('copied')
+
+            // Start countdown
+            setStatus('countdown')
+            setCountdown(6)
+
+        } catch (error) {
+            console.error(error);
+            setStatus('error')
+            setErrorMessage(error instanceof Error ? error.message : 'Failed to copy image')
+        }
+    }
+
+    useEffect(() => {
+        if (status === 'countdown' && countdown > 0) {
+            const timer = setTimeout(() => {
+                setCountdown(prev => prev - 1)
+            }, 1000)
+
+            return () => clearTimeout(timer)
+        } else if (status === 'countdown' && countdown === 0) {
+            // Open Twitter and close popup
+            openTwitter()
+        }
+    }, [status, countdown])
+
+    const openTwitter = () => {
+        const encodedText = encodeURIComponent(tweetText)
+        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodedText}`
+
+        window.open(twitterUrl, '_blank', 'noopener,noreferrer')
+        onTwitterOpen?.()
+        onClose()
+    }
+
+    const handleManualTwitterOpen = () => {
+        openTwitter()
+    }
+
+    const handleBackdropClick = (e: React.MouseEvent) => {
+        if (e.target === e.currentTarget) {
+            onClose()
+        }
+    }
+
+    if (!isOpen) return null
+
+    return (
+        <div
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={handleBackdropClick}
+        >
+            <Card className={`bg-slate-900/95 border-white/10 w-full max-w-md overflow-hidden shadow-2xl rounded-xl animate-in fade-in-0 zoom-in-95 duration-200`}>
+                <CardContent className="p-6 space-y-6">
+                    {/* Header */}
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                                <Twitter className="w-5 h-5 text-white" />
+                            </div>
+                            <h2 className="text-white font-semibold text-lg">
+                                Share on X
+                            </h2>
+                        </div>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={onClose}
+                            className="bg-white/10 hover:bg-white/20 text-white border-white/20 rounded-full w-8 h-8 p-0"
+                        >
+                            <X className="w-4 h-4" />
+                        </Button>
+                    </div>
+
+                    {/* Status Content */}
+                    <div className="text-center space-y-4">
+                        {status === 'copying' && (
+                            <>
+                                <div className="w-16 h-16 mx-auto bg-white/10 rounded-full flex items-center justify-center">
+                                    <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                </div>
+                                <div>
+                                    <h3 className="text-white font-medium text-lg mb-2">
+                                        Copying to Clipboard
+                                    </h3>
+                                    <p className="text-white/70 text-sm">
+                                        Preparing your polaroid image...
+                                    </p>
+                                </div>
+                            </>
+                        )}
+
+                        {status === 'copied' && (
+                            <>
+                                <div className="w-16 h-16 mx-auto bg-green-500/20 rounded-full flex items-center justify-center">
+                                    <Check className="w-8 h-8 text-green-400" />
+                                </div>
+                                <div>
+                                    <h3 className="text-white font-medium text-lg mb-2">
+                                        Image Copied!
+                                    </h3>
+                                    <p className="text-white/70 text-sm">
+                                        Your polaroid has been copied to clipboard
+                                    </p>
+                                </div>
+                            </>
+                        )}
+
+                        {status === 'countdown' && (
+                            <>
+                                <div className="w-16 h-16 mx-auto bg-blue-500/20 rounded-full flex items-center justify-center">
+                                    <span className="text-2xl font-bold text-blue-400">
+                                        {countdown}
+                                    </span>
+                                </div>
+                                <div>
+                                    <h3 className="text-white font-medium text-lg mb-2">
+                                        Opening X in {countdown} seconds...
+                                    </h3>
+                                    <p className="text-white/70 text-sm">
+                                        You can paste your polaroid image in the tweet
+                                    </p>
+                                </div>
+                            </>
+                        )}
+
+                        {status === 'error' && (
+                            <>
+                                <div className="w-16 h-16 mx-auto bg-red-500/20 rounded-full flex items-center justify-center">
+                                    <X className="w-8 h-8 text-red-400" />
+                                </div>
+                                <div>
+                                    <h3 className="text-white font-medium text-lg mb-2">
+                                        Copy Failed
+                                    </h3>
+                                    <p className="text-white/70 text-sm">
+                                        {errorMessage}
+                                    </p>
+                                </div>
+                            </>
+                        )}
+                    </div>
+
+                    {/* Actions */}
+                    <div className="space-y-3">
+                        {status === 'countdown' && (
+                            <Button
+                                onClick={handleManualTwitterOpen}
+                                className="w-full bg-black hover:bg-gray-900 text-white border border-white/20"
+                            >
+                                <Twitter className="w-4 h-4 mr-2" />
+                                Open X Now
+                            </Button>
+                        )}
+
+                        {status === 'error' && (
+                            <>
+                                <Button
+                                    onClick={handleCopyToClipboard}
+                                    className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                                >
+                                    <Copy className="w-4 h-4 mr-2" />
+                                    Try Again
+                                </Button>
+                                <Button
+                                    onClick={handleManualTwitterOpen}
+                                    variant="outline"
+                                    className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20"
+                                >
+                                    <Twitter className="w-4 h-4 mr-2" />
+                                    Open X Without Image
+                                </Button>
+                            </>
+                        )}
+
+                        {(status === 'copying' || status === 'copied' || status === 'countdown') && (
+                            <Button
+                                onClick={onClose}
+                                variant="outline"
+                                className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20"
+                            >
+                                Cancel
+                            </Button>
+                        )}
+                    </div>
+
+                    {/* Preview Text */}
+                    {status !== 'copying' && (
+                        <div className="bg-white/5 border border-white/10 rounded-lg p-3">
+                            <p className="text-white/60 text-xs mb-1">Tweet Preview:</p>
+                            <p className="text-white/80 text-sm">
+                                {tweetText.length > 100 ? `${tweetText.substring(0, 100)}...` : tweetText}
+                            </p>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+        </div>
+    )
+}
+
+export default CopySharePopup
