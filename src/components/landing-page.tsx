@@ -119,6 +119,43 @@ const LandingPage: React.FC = () => {
         }
     }
 
+    // Function to validate that the image is accessible on Arweave
+    const validateArweaveImage = async (transactionId: string, maxRetries = 10, retryDelay = 3000): Promise<boolean> => {
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                console.log(`Validating Arweave image (attempt ${attempt}/${maxRetries}): ${transactionId}`)
+
+                const response = await fetch(`https://arweave.net/${transactionId}`, {
+                    method: 'HEAD',
+                    cache: 'no-cache'
+                })
+
+                if (response.ok) {
+                    const contentType = response.headers.get('content-type')
+                    if (contentType && contentType.startsWith('image/')) {
+                        console.log('✅ Image successfully validated on Arweave')
+                        return true
+                    } else {
+                        console.log('❌ Response is not an image, content-type:', contentType)
+                    }
+                } else {
+                    console.log(`❌ HTTP ${response.status}: ${response.statusText}`)
+                }
+            } catch (error) {
+                console.log(`❌ Validation attempt ${attempt} failed:`, error)
+            }
+
+            // Wait before retrying (except on the last attempt)
+            if (attempt < maxRetries) {
+                console.log(`⏳ Waiting ${retryDelay}ms before retry...`)
+                await new Promise(resolve => setTimeout(resolve, retryDelay))
+            }
+        }
+
+        console.log('❌ Failed to validate image after all attempts')
+        return false
+    }
+
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault()
         if (!selectedFile || !title.trim() || !connected) return
@@ -132,18 +169,30 @@ const LandingPage: React.FC = () => {
                 location: location.trim()
             }
 
-            // TODO: Implement actual upload logic here
             console.log('Upload data:', uploadData)
 
-            // Simulate upload delay
-            // await new Promise(resolve => setTimeout(resolve, 2000))
+            // Upload the image to Arweave
             const id = await handleImageUpload(selectedFile, uploadData)
-            console.log('id', id);
+            console.log('Upload completed, transaction ID:', id);
 
-            // Redirect to the uploaded page
-            navigate(`/uploaded/${id}`)
+            if (!id) {
+                throw new Error('Upload failed: No transaction ID returned')
+            }
+
+            // Validate that the image is accessible on Arweave before navigating
+            console.log('🔍 Validating image accessibility on Arweave...')
+            const isValid = await validateArweaveImage(id)
+
+            if (isValid) {
+                console.log('✅ Image validated successfully, navigating to uploaded page')
+                navigate(`/uploaded/${id}`)
+            } else {
+                throw new Error('Image upload completed but failed to validate accessibility on Arweave. Please try again.')
+            }
         } catch (error) {
             console.error('Upload failed:', error)
+            // You might want to show a user-friendly error message here
+            alert(error instanceof Error ? error.message : 'Upload failed. Please try again.')
         } finally {
             setIsUploading(false)
         }
