@@ -91,26 +91,52 @@ export const createPolaroidImage = (
                 ctx.textAlign = 'center'
                 ctx.textBaseline = 'middle'
 
-                // Calculate text positions
+                // Calculate text positions with vertical centering
                 const textAreaTop = canvasHeight - textHeight
                 const textAreaCenter = canvasWidth / 2
-                let currentY = textAreaTop + 20 // Start with some padding
+                const brandHeight = fontSize - 6 + 8 // Brand text height + spacing
+                const availableTextHeight = textHeight - brandHeight - 20 // Reserve space for brand and padding
 
-                // Draw title if provided
+                // Calculate total height of title and location text
+                let totalContentHeight = 0
+                const textElements: Array<{ text: string, font: string, height: number }> = []
+
                 if (title.trim()) {
-                    ctx.font = `bold ${fontSize}px Arial, sans-serif`
-                    ctx.fillText(title.trim(), textAreaCenter, currentY)
-                    currentY += fontSize + 8
+                    const titleHeight = fontSize
+                    textElements.push({
+                        text: title.trim(),
+                        font: `bold ${fontSize}px Arial, sans-serif`,
+                        height: titleHeight
+                    })
+                    totalContentHeight += titleHeight
+                    if (location.trim()) totalContentHeight += 8 // Add spacing if location follows
                 }
 
-                // Draw location if provided
                 if (location.trim()) {
-                    ctx.font = `${fontSize - 2}px Arial, sans-serif`
-                    ctx.fillText(`📍 ${location.trim()}`, textAreaCenter, currentY)
-                    currentY += fontSize + 8
+                    const locationHeight = fontSize - 2
+                    textElements.push({
+                        text: `📍 ${location.trim()}`,
+                        font: `${fontSize - 2}px Arial, sans-serif`,
+                        height: locationHeight
+                    })
+                    totalContentHeight += locationHeight
                 }
 
-                // Draw branding
+                // Calculate starting Y position to center the content
+                const contentStartY = textAreaTop + (availableTextHeight - totalContentHeight) / 2 + totalContentHeight / 2
+
+                // Draw text elements
+                let currentY = contentStartY - totalContentHeight / 2
+                textElements.forEach((element, index) => {
+                    ctx.font = element.font
+                    ctx.fillStyle = textColor
+                    currentY += element.height / 2
+                    ctx.fillText(element.text, textAreaCenter, currentY)
+                    currentY += element.height / 2
+                    if (index < textElements.length - 1) currentY += 8 // Add spacing between elements
+                })
+
+                // Draw branding at the bottom
                 const brandY = canvasHeight - 15
                 ctx.font = `${fontSize - 6}px Arial, sans-serif`
                 ctx.fillStyle = textColor + '80' // Semi-transparent
@@ -225,26 +251,52 @@ export const createPolaroidFromUrl = (
                 ctx.textAlign = 'center'
                 ctx.textBaseline = 'middle'
 
-                // Calculate text positions
+                // Calculate text positions with vertical centering
                 const textAreaTop = canvasHeight - textHeight
                 const textAreaCenter = canvasWidth / 2
-                let currentY = textAreaTop + 20 // Start with some padding
+                const brandHeight = fontSize - 6 + 8 // Brand text height + spacing
+                const availableTextHeight = textHeight - brandHeight - 20 // Reserve space for brand and padding
 
-                // Draw title if provided
+                // Calculate total height of title and location text
+                let totalContentHeight = 0
+                const textElements: Array<{ text: string, font: string, height: number }> = []
+
                 if (title.trim()) {
-                    ctx.font = `bold ${fontSize}px Arial, sans-serif`
-                    ctx.fillText(title.trim(), textAreaCenter, currentY)
-                    currentY += fontSize + 8
+                    const titleHeight = fontSize
+                    textElements.push({
+                        text: title.trim(),
+                        font: `bold ${fontSize}px Arial, sans-serif`,
+                        height: titleHeight
+                    })
+                    totalContentHeight += titleHeight
+                    if (location.trim()) totalContentHeight += 8 // Add spacing if location follows
                 }
 
-                // Draw location if provided
                 if (location.trim()) {
-                    ctx.font = `${fontSize - 2}px Arial, sans-serif`
-                    ctx.fillText(`📍 ${location.trim()}`, textAreaCenter, currentY)
-                    currentY += fontSize + 8
+                    const locationHeight = fontSize - 2
+                    textElements.push({
+                        text: `📍 ${location.trim()}`,
+                        font: `${fontSize - 2}px Arial, sans-serif`,
+                        height: locationHeight
+                    })
+                    totalContentHeight += locationHeight
                 }
 
-                // Draw branding
+                // Calculate starting Y position to center the content
+                const contentStartY = textAreaTop + (availableTextHeight - totalContentHeight) / 2 + totalContentHeight / 2
+
+                // Draw text elements
+                let currentY = contentStartY - totalContentHeight / 2
+                textElements.forEach((element, index) => {
+                    ctx.font = element.font
+                    ctx.fillStyle = textColor
+                    currentY += element.height / 2
+                    ctx.fillText(element.text, textAreaCenter, currentY)
+                    currentY += element.height / 2
+                    if (index < textElements.length - 1) currentY += 8 // Add spacing between elements
+                })
+
+                // Draw branding at the bottom
                 const brandY = canvasHeight - 15
                 ctx.font = `${fontSize - 6}px Arial, sans-serif`
                 ctx.fillStyle = textColor + '80' // Semi-transparent

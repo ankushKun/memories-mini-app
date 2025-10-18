@@ -1,5 +1,6 @@
-import React from 'react'
-import { X, Calendar, MapPin, Camera, Heart } from 'lucide-react'
+import React, { useState } from 'react'
+import { X, Calendar, MapPin, Camera, Heart, Share2, ExternalLink, Eye, Check } from 'lucide-react'
+import { useNavigate } from 'react-router'
 import { Button } from './ui/button'
 import { Card, CardContent } from './ui/card'
 import { Badge } from './ui/badge'
@@ -14,6 +15,9 @@ interface ImageModalProps {
 
 const ImageModal: React.FC<ImageModalProps> = ({ item, isOpen, onClose }) => {
     const isMobile = useIsMobile()
+    const navigate = useNavigate()
+    const [shareButtonText, setShareButtonText] = useState('Share')
+    const [isShareCopied, setIsShareCopied] = useState(false)
 
     if (!isOpen || !item) return null
 
@@ -31,6 +35,51 @@ const ImageModal: React.FC<ImageModalProps> = ({ item, isOpen, onClose }) => {
         if (e.target === e.currentTarget) {
             onClose()
         }
+    }
+
+    // Extract the original transaction ID by removing tile suffix if present
+    const getOriginalTransactionId = (id: string): string => {
+        // Remove tile suffix pattern: -tile-{col}-{row}
+        return id.replace(/-tile-\d+-\d+$/, '').slice(0, 43)
+    }
+
+    const originalTransactionId = getOriginalTransactionId(item.id)
+
+    const handleShare = async () => {
+        try {
+            const viewUrl = `${window.location.origin}${window.location.pathname}#/view/${originalTransactionId}`
+            await navigator.clipboard.writeText(viewUrl)
+            setIsShareCopied(true)
+            setShareButtonText('Copied!')
+            setTimeout(() => {
+                setIsShareCopied(false)
+                setShareButtonText('Share')
+            }, 2000)
+        } catch (err) {
+            console.error('Failed to copy to clipboard:', err)
+            // Fallback for browsers that don't support clipboard API
+            const textArea = document.createElement('textarea')
+            textArea.value = `${window.location.origin}${window.location.pathname}#/view/${originalTransactionId}`
+            document.body.appendChild(textArea)
+            textArea.select()
+            document.execCommand('copy')
+            document.body.removeChild(textArea)
+            setIsShareCopied(true)
+            setShareButtonText('Copied!')
+            setTimeout(() => {
+                setIsShareCopied(false)
+                setShareButtonText('Share')
+            }, 2000)
+        }
+    }
+
+    const handleViewRaw = () => {
+        window.open(`https://arweave.net/${originalTransactionId}`, '_blank')
+    }
+
+    const handleViewImage = () => {
+        onClose()
+        navigate(`/view/${originalTransactionId}`)
     }
 
     return (
@@ -129,22 +178,44 @@ const ImageModal: React.FC<ImageModalProps> = ({ item, isOpen, onClose }) => {
 
                                 {/* Actions */}
                                 <div className="border-t border-white/10 pt-6 mt-auto">
-                                    <div className="flex gap-3">
-                                        {/* <Button
-                                            variant="outline"
-                                            size={isMobile ? "default" : "lg"}
-                                            className="flex-1 bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/30"
-                                        >
-                                            <Heart className="w-4 h-4 mr-2" />
-                                            Like
-                                        </Button> */}
+                                    <div className="space-y-3">
+                                        {/* Share Button */}
                                         <Button
+                                            onClick={handleShare}
                                             variant="outline"
                                             size={isMobile ? "default" : "lg"}
-                                            className="flex-1 bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/30"
+                                            className={`w-full border-white/20 text-white hover:bg-white/20 hover:border-white/30 transition-colors ${isShareCopied ? 'bg-green-600/20 border-green-500/30' : 'bg-white/10'
+                                                }`}
                                         >
-                                            Share
+                                            {isShareCopied ? (
+                                                <Check className="w-4 h-4 mr-2" />
+                                            ) : (
+                                                <Share2 className="w-4 h-4 mr-2" />
+                                            )}
+                                            {shareButtonText}
                                         </Button>
+
+                                        {/* View Buttons */}
+                                        <div className="flex gap-2">
+                                            <Button
+                                                onClick={handleViewImage}
+                                                variant="outline"
+                                                size={isMobile ? "sm" : "default"}
+                                                className="flex-1 bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/30"
+                                            >
+                                                <Eye className="w-4 h-4 mr-2" />
+                                                View Image
+                                            </Button>
+                                            <Button
+                                                onClick={handleViewRaw}
+                                                variant="outline"
+                                                size={isMobile ? "sm" : "default"}
+                                                className="flex-1 bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/30"
+                                            >
+                                                <ExternalLink className="w-4 h-4 mr-2" />
+                                                View Raw
+                                            </Button>
+                                        </div>
                                     </div>
                                 </div>
                             </CardContent>

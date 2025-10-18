@@ -88,7 +88,7 @@ const CanvasItemComponent = React.memo<{
     return (
         <div
             key={item.id}
-            className="absolute group cursor-pointer transition-all duration-200 hover:z-10"
+            className="absolute group cursor-pointer transition-all duration-200 hover:z-10 select-none"
             style={{
                 left: item.x,
                 top: item.y,
@@ -114,7 +114,7 @@ const CanvasItemComponent = React.memo<{
                 <img
                     src={item.imageUrl}
                     alt={item.title || `Item ${item.id}`}
-                    className={`w-full h-full object-cover transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'
+                    className={`w-full h-full object-cover transition-opacity select-none duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'
                         }`}
                     draggable={false}
                     loading="lazy"
@@ -414,11 +414,31 @@ export const InfiniteCanvas = forwardRef<InfiniteCanvasRef, InfiniteCanvasProps>
         // Add padding to load items slightly outside viewport (reduced for mobile)
         const padding = (isMobile ? mobileItemSize : itemSize) * (isMobile ? 1.5 : 2)
 
-        // Calculate grid dimensions from the original items
-        const gridCols = Math.sqrt(items.length)
-        const gridRows = Math.sqrt(items.length)
-        const cellWidth = mobileItemSize + mobileGap
-        const cellHeight = mobileItemSize + mobileGap
+        // Calculate grid dimensions matching gallery-page.tsx logic
+        const itemsPerRow = Math.ceil(Math.sqrt(items.length))
+        const gridCols = itemsPerRow
+        const gridRows = Math.ceil(items.length / itemsPerRow)
+
+        // Use the actual spacing from the original items (they already have correct device-specific sizing)
+        if (items.length === 0) return []
+
+        // Calculate cell dimensions from the actual item positioning
+        // Gallery-page uses: x = col * (size + spacing), so spacing = (x_next - x_current) - size
+        const firstItem = items[0]
+        const secondItem = items.length > 1 ? items[1] : null
+
+        let cellWidth, cellHeight
+        if (secondItem && secondItem.y === firstItem.y) {
+            // Items are in same row, calculate from x difference
+            cellWidth = secondItem.x - firstItem.x
+            cellHeight = cellWidth // Assuming square grid
+        } else {
+            // Fallback: use item size + estimated gap
+            const estimatedGap = isMobile ? 10 : 20
+            cellWidth = firstItem.width + estimatedGap
+            cellHeight = firstItem.height + estimatedGap
+        }
+
         const gridWidth = gridCols * cellWidth
         const gridHeight = gridRows * cellHeight
 
@@ -438,15 +458,16 @@ export const InfiniteCanvas = forwardRef<InfiniteCanvasRef, InfiniteCanvasProps>
 
                 // Add all items from the original grid to this tile position
                 items.forEach(item => {
-                    // Scale item position and size for mobile
-                    const scaleFactor = isMobile ? (mobileItemSize + mobileGap) / (itemSize + gap) : 1
+                    // Items already have correct positioning and sizing from gallery-page
+                    // No scaling needed - just offset for infinite grid tiles
                     const virtualItem: CanvasItem = {
                         ...item,
                         id: `${item.id}-tile-${tileCol}-${tileRow}`,
-                        x: (item.x * scaleFactor) + tileOffsetX,
-                        y: (item.y * scaleFactor) + tileOffsetY,
-                        width: mobileItemSize,
-                        height: mobileItemSize
+                        x: item.x + tileOffsetX,
+                        y: item.y + tileOffsetY,
+                        // Keep original width/height from gallery-page
+                        width: item.width,
+                        height: item.height
                     }
 
                     // Check if this virtual item is in the viewport
