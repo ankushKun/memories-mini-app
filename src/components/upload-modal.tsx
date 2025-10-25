@@ -56,6 +56,13 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
         }
     }, [isMobile])
 
+    // Autofill handle with Twitter username if connected via WAuth Twitter
+    useEffect(() => {
+        if (isOpen && api?.id === 'wauth-twitter' && api.authData?.username) {
+            setHandle(`@${api.authData.username}`)
+        }
+    }, [isOpen, api])
+
     const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0]
         if (file && file.type.startsWith('image/')) {

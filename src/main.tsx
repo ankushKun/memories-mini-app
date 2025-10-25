@@ -11,7 +11,6 @@ import AosyncStrategy from "@vela-ventures/aosync-strategy"
 import App from './App'
 import GalleryPage from './components/gallery-page'
 import UploadedPage from './components/uploaded-page'
-import ViewPage from './components/view-page'
 
 
 
@@ -43,8 +42,7 @@ function Main() {
           <Routes>
             <Route index element={<App />} />
             <Route path='gallery' element={<GalleryPage />} />
-            <Route path='uploaded/:transactionId' element={<UploadedPage />} />
-            <Route path='view/:transactionId' element={<ViewPage />} />
+            <Route path='view/:transactionId' element={<UploadedPage />} />
           </Routes>
         </HashRouter>
       </ThemeProvider>

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react'
+import React, { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router'
 import { useApi, useConnection } from '@arweave-wallet-kit/react'
 import { Upload } from 'lucide-react'
@@ -63,15 +63,6 @@ const LandingPage: React.FC = () => {
     const api = useApi()
     const navigate = useNavigate()
     const { connected, connect } = useConnection()
-    const prevConnectedRef = useRef(connected)
-
-    // Automatically open upload modal when connection status changes from disconnected to connected
-    useEffect(() => {
-        if (connected && !prevConnectedRef.current) {
-            setIsUploadModalOpen(true)
-        }
-        prevConnectedRef.current = connected
-    }, [connected])
 
     async function handleImageUpload(file: File, uploadData: UploadData): Promise<string> {
         if (!api) throw new Error('Wallet not initialized not found');
@@ -166,11 +157,11 @@ const LandingPage: React.FC = () => {
             const isValid = await validateArweaveImage(id)
 
             if (isValid) {
-                console.log('✅ Image validated successfully, navigating to uploaded page')
+                console.log('✅ Image validated successfully, navigating to view page')
                 // Close modal before navigating
                 setIsUploadModalOpen(false)
                 setIsUploading(false)
-                navigate(`/uploaded/${id}`)
+                navigate(`/view/${id}`)
             } else {
                 throw new Error('Image upload completed but failed to validate accessibility on Arweave. Please try again.')
             }
@@ -226,6 +217,7 @@ const LandingPage: React.FC = () => {
                                 <Upload className="w-4 h-4" />
                                 Upload Now
                             </Button>
+                            {api && <span className='text-xs text-muted-foreground relative -top-3'>{api.id == "wauth-twitter" ? `@${api.authData?.username}` : `${api.address.slice(0, 8)}...${api.address.slice(-4)}`}</span>}
                             <Button
                                 variant="link"
                                 onClick={handleExploreGallery}
