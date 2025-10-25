@@ -168,7 +168,7 @@ const UploadedPage: React.FC = () => {
 
     const getTweetText = () => {
         if (!memoryData) return ''
-        return `Just preserved my memory "${memoryData.title}" forever on Arweave! 🌟\n\nView it at: ${window.location.origin}/#/view/${memoryData.id}\n\n#PermanentOnArweave`
+        return `Check out this memory "${memoryData.title}" preserved forever on Arweave! 🌟\n\nView it at: ${window.location.origin}/#/view/${memoryData.id}\n\n#PermanentOnArweave`
     }
 
     const handleGallery = () => {

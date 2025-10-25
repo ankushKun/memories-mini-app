@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react'
-import { X } from 'lucide-react'
+import React, { useState, useEffect, useRef } from 'react'
+import { X, Share2 } from 'lucide-react'
 import { Button } from './ui/button'
 import { useIsMobile } from '../hooks/use-mobile'
 import type { CanvasItem } from './infinite-canvas'
 import StampPreview from './stamp-preview'
+import CopySharePopup from './copy-share-popup'
+import { domToBlob } from 'modern-screenshot'
 
 interface ImageModalProps {
     item: CanvasItem | null
@@ -15,6 +17,10 @@ const ImageModal: React.FC<ImageModalProps> = ({ item, isOpen, onClose }) => {
     const isMobile = useIsMobile()
     const [isAnimating, setIsAnimating] = useState(false)
     const [shouldRender, setShouldRender] = useState(false)
+    const [isSharePopupOpen, setIsSharePopupOpen] = useState(false)
+    const [isCapturing, setIsCapturing] = useState(false)
+    const [capturedBlob, setCapturedBlob] = useState<Blob | null>(null)
+    const hiddenHorizontalRef = useRef<HTMLDivElement>(null)
 
     // Handle animation states
     useEffect(() => {
@@ -38,6 +44,73 @@ const ImageModal: React.FC<ImageModalProps> = ({ item, isOpen, onClose }) => {
             return () => clearTimeout(timer)
         }
     }, [isOpen, item?.id])
+
+    const captureStampAsImage = async (): Promise<Blob | null> => {
+        // Always capture the horizontal version
+        if (!hiddenHorizontalRef.current) return null
+
+        try {
+            setIsCapturing(true)
+
+            // Temporarily make the horizontal version visible
+            const element = hiddenHorizontalRef.current
+            const originalVisibility = element.style.visibility
+            const originalOpacity = element.style.opacity
+
+            element.style.visibility = 'visible'
+            element.style.opacity = '1'
+            element.style.position = 'absolute'
+            element.style.left = '0'
+            element.style.top = '0'
+            element.style.zIndex = '9999'
+
+            // Wait for images to fully render
+            await new Promise(resolve => setTimeout(resolve, 200))
+
+            // Capture the horizontal stamp preview element as a blob
+            const blob = await domToBlob(element, {
+                scale: 2, // Higher quality (2x resolution)
+                quality: 1, // Maximum quality
+                type: 'image/png'
+            })
+
+            // Hide it again
+            element.style.visibility = originalVisibility
+            element.style.opacity = originalOpacity
+            element.style.zIndex = ''
+
+            return blob
+        } catch (error) {
+            console.error('Error capturing stamp:', error)
+            // Make sure to hide it even if there's an error
+            if (hiddenHorizontalRef.current) {
+                const element = hiddenHorizontalRef.current
+                element.style.visibility = 'hidden'
+                element.style.opacity = '0'
+                element.style.zIndex = ''
+            }
+            return null
+        } finally {
+            setIsCapturing(false)
+        }
+    }
+
+    const handleShare = async () => {
+        const blob = await captureStampAsImage()
+        if (blob) {
+            setCapturedBlob(blob)
+        }
+        setIsSharePopupOpen(true)
+    }
+
+    const handleSharePopupClose = () => {
+        setIsSharePopupOpen(false)
+    }
+
+    const getTweetText = () => {
+        if (!item) return ''
+        return `Check out this memory "${item.title || 'Memory'}" preserved forever on Arweave! 🌟\n\nView it at: ${window.location.origin}/#/view/${item.id.split("-tile")[0]}\n\n#PermanentOnArweave`
+    }
 
     if (!shouldRender || !item) return null
 
@@ -93,8 +166,47 @@ const ImageModal: React.FC<ImageModalProps> = ({ item, isOpen, onClose }) => {
                     layout="vertical"
                     className='w-full h-fit'
                 />
-                <Button className='absolute bottom-0 left-0'>Share</Button>
             </div>
+
+            {/* Hidden horizontal version for capturing - always horizontal */}
+            <div
+                ref={hiddenHorizontalRef}
+                className="absolute left-0 top-0 opacity-0 pointer-events-none"
+                style={{ visibility: 'hidden' }}
+            >
+                <StampPreview
+                    headline={item.title || 'Memory'}
+                    location={details.location?.toUpperCase() || 'UNKNOWN LOCATION'}
+                    handle="@memories"
+                    date={details.date.toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
+                    }).toUpperCase()}
+                    imageSrc={item.imageUrl}
+                    layout="horizontal"
+                />
+            </div>
+
+            {/* Share button */}
+            <Button
+                onClick={handleShare}
+                disabled={isCapturing}
+                className={`absolute bottom-6 left-6 bg-white hover:bg-white/90 text-black border-0 px-6 py-3 text-base font-medium flex items-center justify-center gap-2 disabled:opacity-50 transition-all duration-300 shadow-lg ${isAnimating ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
+                    }`}
+            >
+                <Share2 className="w-4 h-4" />
+                {isCapturing ? 'Capturing...' : 'Share'}
+            </Button>
+
+            {/* Copy & Share Popup */}
+            <CopySharePopup
+                isOpen={isSharePopupOpen}
+                onClose={handleSharePopupClose}
+                polaroidBlob={capturedBlob}
+                tweetText={getTweetText()}
+                onTwitterOpen={handleSharePopupClose}
+            />
         </div>
     )
 }
