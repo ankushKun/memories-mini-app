@@ -41,8 +41,8 @@
         "@radix-ui/react-tooltip": "^1.2.7",
         "@tailwindcss/vite": "^4.1.11",
         "@vela-ventures/aosync-strategy": "^1.0.13",
-        "@wauth/sdk": "^0.0.18",
-        "@wauth/strategy": "^0.0.18",
+        "@wauth/sdk": "^0.0.19",
+        "@wauth/strategy": "^0.0.19-1",
         "arweave": "^1.15.7",
         "browser-image-compression": "^2.0.2",
         "class-variance-authority": "^0.7.1",
@@ -52,6 +52,7 @@
         "embla-carousel-react": "^8.6.0",
         "input-otp": "^1.4.2",
         "lucide-react": "^0.525.0",
+        "modern-screenshot": "^4.6.6",
         "next-themes": "^0.4.6",
         "react": "^19.1.0",
         "react-day-picker": "^9.8.0",
@@ -655,9 +656,9 @@
 
     "@vitejs/plugin-react": ["@vitejs/plugin-react@4.7.0", "", { "dependencies": { "@babel/core": "^7.28.0", "@babel/plugin-transform-react-jsx-self": "^7.27.1", "@babel/plugin-transform-react-jsx-source": "^7.27.1", "@rolldown/pluginutils": "1.0.0-beta.27", "@types/babel__core": "^7.20.5", "react-refresh": "^0.17.0" }, "peerDependencies": { "vite": "^4.2.0 || ^5.0.0 || ^6.0.0 || ^7.0.0" } }, "sha512-gUu9hwfWvvEDBBmgtAowQCojwZmJ5mcLn3aufeCsitijs3+f2NsrPtlAWIR6OPiqljl96GVCUbLe0HyqIpVaoA=="],
 
-    "@wauth/sdk": ["@wauth/sdk@0.0.18", "", { "dependencies": { "@dha-team/arbundles": "^1.0.3", "@permaweb/aoconnect": "^0.0.85", "arconnect": "^1.0.4", "arweave": "^2.0.0-ec.1", "axios": "^1.10.0", "formidable": "^3.5.4", "superagent": "^10.2.3", "vite-plugin-node-polyfills": "^0.24.0" }, "peerDependencies": { "pocketbase": "^0.26.1" } }, "sha512-Z4KxeF2phGQyyvS4wZ8ovt81pbiFGNhYGwX+AmD/LcgJqfi475HTbZudIzQjWCoT4E46OuHhXCfGYASLQJ/d6A=="],
+    "@wauth/sdk": ["@wauth/sdk@0.0.19", "", { "dependencies": { "@dha-team/arbundles": "^1.0.3", "@permaweb/aoconnect": "^0.0.85", "arconnect": "^1.0.4", "arweave": "^2.0.0-ec.1", "axios": "^1.10.0", "formidable": "^3.5.4", "superagent": "^10.2.3", "vite-plugin-node-polyfills": "^0.24.0" }, "peerDependencies": { "pocketbase": "^0.26.1" } }, "sha512-PXHi8FwrWya9wXRK0RfpW77Xy4KUzISwmRn0R0Byb/o4e7cTByodp7xapC9/6Eo4Bv9EIZgJZHm1n2U3eMc0SQ=="],
 
-    "@wauth/strategy": ["@wauth/strategy@0.0.18", "", { "dependencies": { "@arweave-wallet-kit/core": "^0.1.1", "@dha-team/arbundles": "^1.0.3", "@wauth/sdk": "^0.0.18", "axios": "^1.10.0", "vite-plugin-node-polyfills": "^0.24.0" } }, "sha512-h9GrcO8Uh2miN144c3WJaciU8l4iSjNDYi2/Z1IFmeiqVwOugHbOP/nAJFhoUjKJQQF3+zP9CUJqWVKEINnU7w=="],
+    "@wauth/strategy": ["@wauth/strategy@0.0.19-1", "", { "dependencies": { "@arweave-wallet-kit/core": "^0.1.1", "@dha-team/arbundles": "^1.0.3", "@wauth/sdk": "^0.0.19", "axios": "^1.10.0", "vite-plugin-node-polyfills": "^0.24.0" } }, "sha512-lxqw5MabiO5g2YpLn76pdVycav2hYWzdFmjbf2tDNsw7dc3J6CZYelLoSwbjpbeLcturfTS4mGcQo6qfCQ+nvg=="],
 
     "@wyw-in-js/babel-preset": ["@wyw-in-js/babel-preset@0.4.1", "", { "dependencies": { "@babel/core": "^7.23.5", "@wyw-in-js/transform": "0.4.1" } }, "sha512-4mrcifqyZFyOHGXRkdHjLYxDgi5yVT7AuNG38G36oR/tS3asmCerkbCCaTkB5QxFOKOnjmeejHRBFCZ4pgSY4g=="],
 
@@ -1294,6 +1295,8 @@
     "mkdirp": ["mkdirp@3.0.1", "", { "bin": { "mkdirp": "dist/cjs/src/bin.js" } }, "sha512-+NsyUUAZDmo6YVHzL/stxSu3t9YS1iljliy3BSDrXJ/dkn1KYdmtZODGGjLcc9XLgVVpH4KshHB8XmZgMhaBXg=="],
 
     "mnemonist": ["mnemonist@0.39.8", "", { "dependencies": { "obliterator": "^2.0.1" } }, "sha512-vyWo2K3fjrUw8YeeZ1zF0fy6Mu59RHokURlld8ymdUPjMlD9EC9ov1/YPqTgqRvUN9nTr3Gqfz29LYAmu0PHPQ=="],
+
+    "modern-screenshot": ["modern-screenshot@4.6.6", "", {}, "sha512-8tF0xEpe7yx37mK95UcIghSCWYeu628K2hLJl+ZNY2ANmRzYLlRLpquPHAQcL8keF6BoeEzTEw4GrgmUpGuZ8w=="],
 
     "mqtt": ["mqtt@5.13.3", "", { "dependencies": { "@types/readable-stream": "^4.0.18", "@types/ws": "^8.18.1", "commist": "^3.2.0", "concat-stream": "^2.0.0", "debug": "^4.4.0", "help-me": "^5.0.0", "lru-cache": "^10.4.3", "minimist": "^1.2.8", "mqtt-packet": "^9.0.2", "number-allocator": "^1.0.14", "readable-stream": "^4.7.0", "rfdc": "^1.4.1", "socks": "^2.8.3", "split2": "^4.2.0", "worker-timers": "^7.1.8", "ws": "^8.18.0" }, "bin": { "mqtt_pub": "build/bin/pub.js", "mqtt_sub": "build/bin/sub.js", "mqtt": "build/bin/mqtt.js" } }, "sha512-91x03kh1+vBBA51OMNbEw2fymXfaUjpHkC0NcMckg9Vf6ee/GrM/HXfE8XeeziHQpJL8adr+9ThTbN5v/WmrRA=="],
 

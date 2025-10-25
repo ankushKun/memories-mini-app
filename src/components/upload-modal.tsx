@@ -1,11 +1,12 @@
-import React, { useState, useRef } from 'react'
-import { X, Upload, Image as ImageIcon, FileText, MapPin } from 'lucide-react'
+import React, { useState, useRef, useEffect } from 'react'
+import { ArrowRight, Upload, Image as ImageIcon, ArrowLeft } from 'lucide-react'
 import { Button } from './ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card'
 import { Input } from './ui/input'
-import { Textarea } from './ui/textarea'
-import { Label } from './ui/label'
 import { useIsMobile } from '../hooks/use-mobile'
+import { MemoriesLogo } from './landing-page'
+import { useActiveAddress, useApi, useConnection, useProfileModal } from '@arweave-wallet-kit/react'
+import StampPreview from './stamp-preview'
+import { cn } from '@/lib/utils'
 
 interface UploadModalProps {
     isOpen: boolean
@@ -17,6 +18,7 @@ export interface UploadData {
     file: File
     title: string
     location: string
+    handle: string
 }
 
 const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) => {
@@ -24,9 +26,35 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
     const [previewUrl, setPreviewUrl] = useState<string | null>(null)
     const [title, setTitle] = useState('')
     const [location, setLocation] = useState('')
+    const [handle, setHandle] = useState('')
     const [isUploading, setIsUploading] = useState(false)
+    const [isDragging, setIsDragging] = useState(false)
+    const [uploadError, setUploadError] = useState<string | null>(null)
+    const [mobileStep, setMobileStep] = useState<1 | 2>(1) // 1: input details, 2: preview & upload
     const fileInputRef = useRef<HTMLInputElement>(null)
     const isMobile = useIsMobile()
+    // Force vertical orientation on mobile
+    const [orientation, setOrientation] = useState<'horizontal' | 'vertical'>('vertical')
+    const address = useActiveAddress()
+    const api = useApi()
+    const { connected } = useConnection()
+    const { setOpen } = useProfileModal()
+
+    // Reset uploading state, mobile step, and error when modal closes
+    useEffect(() => {
+        if (!isOpen) {
+            setIsUploading(false)
+            setMobileStep(1)
+            setUploadError(null)
+        }
+    }, [isOpen])
+
+    // Force vertical orientation on mobile
+    useEffect(() => {
+        if (isMobile) {
+            setOrientation('vertical')
+        }
+    }, [isMobile])
 
     const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0]
@@ -39,10 +67,17 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
 
     const handleDragOver = (event: React.DragEvent) => {
         event.preventDefault()
+        setIsDragging(true)
+    }
+
+    const handleDragLeave = (event: React.DragEvent) => {
+        event.preventDefault()
+        setIsDragging(false)
     }
 
     const handleDrop = (event: React.DragEvent) => {
         event.preventDefault()
+        setIsDragging(false)
         const file = event.dataTransfer.files[0]
         if (file && file.type.startsWith('image/')) {
             setSelectedFile(file)
@@ -53,23 +88,26 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
 
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault()
-        if (!selectedFile || !title.trim()) return
+        if (!selectedFile || !title.trim() || !handle.trim() || !location.trim()) return
 
         setIsUploading(true)
+        setUploadError(null) // Clear any previous errors
 
         try {
             const uploadData: UploadData = {
                 file: selectedFile,
                 title: title.trim(),
-                location: location.trim()
+                location: location.trim(),
+                handle: handle.trim()
             }
 
-            onUpload?.(uploadData)
-            handleClose()
+            await onUpload?.(uploadData)
+            // Don't close here - let the parent component handle navigation
+            // handleClose() will be called by parent after successful upload
         } catch (error) {
             console.error('Upload failed:', error)
-        } finally {
-            setIsUploading(false)
+            setUploadError(error instanceof Error ? error.message : 'Upload failed. Please try again.')
+            setIsUploading(false) // Re-enable the upload button
         }
     }
 
@@ -78,7 +116,10 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
         setPreviewUrl(null)
         setTitle('')
         setLocation('')
+        setHandle('')
         setIsUploading(false)
+        setMobileStep(1)
+        setUploadError(null)
         if (previewUrl) {
             URL.revokeObjectURL(previewUrl)
         }
@@ -86,152 +127,286 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
     }
 
     const handleBackdropClick = (e: React.MouseEvent) => {
-        if (e.target === e.currentTarget) {
+        if (e.target === e.currentTarget && !isUploading) {
             handleClose()
         }
     }
 
+    const handleNextStep = () => {
+        if (selectedFile && title.trim() && handle.trim() && location.trim()) {
+            setMobileStep(2)
+        }
+    }
+
+    const handleBackStep = () => {
+        setMobileStep(1)
+    }
+
     if (!isOpen) return null
+
+    // Mobile: Step 2 - Preview and Upload
+    if (isMobile && mobileStep === 2) {
+        return (
+            <div
+                className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex flex-col items-center justify-center p-4 gap-4 animate-in fade-in duration-300"
+                onClick={handleBackdropClick}
+            >
+                {/* Back button */}
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleBackStep}
+                    disabled={isUploading}
+                    className='self-start rounded-full w-10 h-10 p-0 bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-all'
+                >
+                    <ArrowLeft className='w-5 h-5 text-white' />
+                </Button>
+
+                {/* Preview */}
+                <StampPreview
+                    headline={title}
+                    location={location}
+                    handle={handle}
+                    date={new Date().toLocaleDateString()}
+                    imageSrc={previewUrl}
+                    layout='vertical'
+                />
+
+                {/* Upload button */}
+                <div className='w-full max-w-md flex flex-col gap-2'>
+                    {!connected && (
+                        <div className='text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg p-2'>
+                            Please connect your wallet to upload memories
+                        </div>
+                    )}
+                    {uploadError && (
+                        <div className='text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg p-2'>
+                            {uploadError}
+                        </div>
+                    )}
+                    <Button
+                        onClick={handleSubmit}
+                        disabled={isUploading || !connected}
+                        className='w-full bg-white text-black rounded-lg disabled:opacity-50 disabled:cursor-not-allowed text-base p-4 font-medium hover:bg-white/90'
+                    >
+                        {isUploading ? 'Uploading...' : 'Upload Memory'}
+                    </Button>
+                    <span className='text-xs text-center text-muted-foreground'>you might receive a signature request for the upload data</span>
+                </div>
+            </div>
+        )
+    }
 
     return (
         <div
-            className={`fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center ${isMobile ? 'p-4' : 'p-8'}`}
+            className={cn(
+                "fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center animate-in fade-in duration-300",
+                isMobile ? "p-4 flex-col overflow-y-auto" : "p-8 gap-20"
+            )}
             onClick={handleBackdropClick}
         >
-            <Card className={`bg-slate-900/95 border-white/10 w-full overflow-hidden shadow-2xl ${isMobile ? 'max-h-[90vh] rounded-xl' : 'max-w-2xl max-h-[85vh] rounded-xl'}`}>
-                <CardHeader className="border-b border-white/10 pb-4">
-                    <div className="flex items-center justify-between">
-                        <CardTitle className={`text-white ${isMobile ? 'text-lg' : 'text-xl'}`}>
-                            Upload Your Memory
-                        </CardTitle>
+            <div className={cn(
+                "bg-gradient-to-br from-white via-white flex flex-col to-purple-50 w-full shadow-2xl relative rounded-lg animate-in zoom-in-95 duration-300",
+                isMobile ? "p-4 gap-4 max-w-full my-auto" : "p-6 gap-6 max-w-lg max-h-[90vh] overflow-y-auto"
+            )}>
+                {/* Header */}
+                <div className=''>
+                    <MemoriesLogo theme='dark' />
+                </div>
+
+                <form onSubmit={handleSubmit} className={cn(
+                    'rounded-lg border border-black/20 text-black flex flex-col',
+                    isMobile ? 'p-4 gap-4' : 'p-6 gap-6'
+                )}>
+                    <div className='flex flex-col gap-2'>
+                        <div className={cn('font-extralight font-instrument', isMobile ? 'text-xl' : 'text-3xl')}>
+                            Title your memory <span className='text-red-500'>*</span>
+                        </div>
+                        <Input
+                            placeholder='First vacation with the fam'
+                            className={cn('w-full border border-black/20 rounded-lg', isMobile ? 'p-3 text-sm' : 'p-5')}
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            required
+                            disabled={isUploading}
+                        />
+                    </div>
+                    <div className='flex flex-col gap-2'>
+                        <div className={cn('font-extralight font-instrument', isMobile ? 'text-xl' : 'text-3xl')}>
+                            Twitter handle <span className='text-red-500'>*</span>
+                        </div>
+                        <Input
+                            placeholder='@handle'
+                            className={cn('w-full border border-black/20 rounded-lg', isMobile ? 'p-3 text-sm' : 'p-5')}
+                            value={handle}
+                            onChange={(e) => setHandle(e.target.value)}
+                            required
+                            disabled={isUploading}
+                        />
+                    </div>
+                    <div className='flex flex-col gap-2'>
+                        <div className={cn('font-extralight font-instrument', isMobile ? 'text-xl' : 'text-3xl')}>
+                            Location <span className='text-red-500'>*</span>
+                        </div>
+                        <Input
+                            placeholder='Where was this memory taken'
+                            className={cn('w-full border border-black/20 rounded-lg', isMobile ? 'p-3 text-sm' : 'p-5')}
+                            value={location}
+                            onChange={(e) => setLocation(e.target.value)}
+                            required
+                            disabled={isUploading}
+                        />
+                    </div>
+                    <div className='flex flex-col gap-2'>
+                        <div className={cn('font-extralight font-instrument', isMobile ? 'text-xl' : 'text-3xl')}>
+                            Upload your memory <span className='text-red-500'>*</span>
+                        </div>
+                        <div
+                            className={cn(
+                                'w-full border-2 border-dashed rounded-lg transition-all',
+                                isMobile ? 'h-32 p-3' : 'h-40 p-5',
+                                isUploading
+                                    ? 'cursor-not-allowed opacity-50'
+                                    : 'cursor-pointer',
+                                isDragging && !isUploading
+                                    ? 'border-purple-500 bg-purple-50'
+                                    : 'border-black/20 hover:border-black/40 hover:bg-gray-50'
+                            )}
+                            onDragOver={!isUploading ? handleDragOver : undefined}
+                            onDragLeave={!isUploading ? handleDragLeave : undefined}
+                            onDrop={!isUploading ? handleDrop : undefined}
+                            onClick={!isUploading ? () => fileInputRef.current?.click() : undefined}
+                        >
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*"
+                                onChange={handleFileSelect}
+                                className="hidden"
+                            />
+                            <div className='flex flex-col items-center justify-center h-full gap-2'>
+                                {selectedFile ? (
+                                    <>
+                                        <ImageIcon className={cn('text-green-600', isMobile ? 'w-6 h-6' : 'w-8 h-8')} />
+                                        <p className={cn('font-medium text-gray-700 text-center px-2', isMobile ? 'text-xs' : 'text-sm')}>{selectedFile.name}</p>
+                                        <p className='text-xs text-gray-500'>Click to change</p>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Upload className={cn(
+                                            'transition-colors',
+                                            isMobile ? 'w-6 h-6' : 'w-8 h-8',
+                                            isDragging ? 'text-purple-600' : 'text-gray-400'
+                                        )} />
+                                        <p className={cn('font-medium text-gray-600 text-center px-2', isMobile ? 'text-xs' : 'text-sm')}>
+                                            {isDragging ? 'Drop your image here' : isMobile ? 'Click to upload' : 'Click to upload or drag and drop'}
+                                        </p>
+                                        <p className='text-xs text-gray-500'>{isMobile ? 'Up to 10MB' : 'PNG, JPG, GIF up to 10MB'}</p>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                    {/* Mobile: Show next button, Desktop: Show upload button with wallet warning */}
+                    {isMobile ? (
+                        <Button
+                            type="button"
+                            onClick={handleNextStep}
+                            disabled={!selectedFile || !title.trim() || !handle.trim() || !location.trim()}
+                            className='w-full bg-[#2C2C2C] font-light text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed text-base p-4 flex items-center justify-center gap-2'
+                        >
+                            Next: Preview <ArrowRight className='w-5 h-5' />
+                        </Button>
+                    ) : (
+                        <>
+                            {!connected && (
+                                <div className='text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-lg p-3'>
+                                    Please connect your wallet to upload memories
+                                </div>
+                            )}
+                            {uploadError && (
+                                <div className='text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-3'>
+                                    {uploadError}
+                                </div>
+                            )}
+                            <Button
+                                type="submit"
+                                disabled={!selectedFile || !title.trim() || !handle.trim() || !location.trim() || isUploading || !connected}
+                                className='w-full bg-[#2C2C2C] font-light text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed text-xl p-6'
+                            >
+                                {isUploading ? 'Uploading...' : 'Upload'}
+                            </Button>
+
+                        </>
+                    )}
+                </form>
+
+                {/* connection info - show on both mobile and desktop in step 1 */}
+                <div className={cn(
+                    'flex items-center justify-between bg-white/50 backdrop-blur-sm border border-gray-200 rounded-2xl transition-all hover:bg-white/80',
+                    isMobile ? 'p-3' : 'p-4'
+                )}>
+                    <div className='flex items-center gap-3'>
+                        <div className='relative'>
+                            <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-all ${connected
+                                ? 'bg-gradient-to-br from-green-100 to-emerald-100'
+                                : 'bg-gradient-to-br from-gray-100 to-gray-200'
+                                }`}>
+                                <div className={`w-2 h-2 rounded-full transition-all ${connected ? 'bg-green-500' : 'bg-gray-400'
+                                    }`} />
+                            </div>
+                        </div>
+                        <div className='flex flex-col'>
+                            <span className={cn('text-gray-900 font-semibold', isMobile ? 'text-sm' : 'text-base')}>
+                                {connected ? 'Connected' : 'Disconnected'}
+                            </span>
+                            <span className={cn('text-gray-500 font-medium', isMobile ? 'text-xs' : 'text-sm')}>
+                                {connected && api ? api.id == "wauth-twitter" ? <>@{api.authData?.username}</> : <>@{address.slice(0, 8)}...{address.slice(-4)}</> : <>No wallet connected</>}
+                            </span>
+                        </div>
+                    </div>
+                    {connected && (
                         <Button
                             variant="ghost"
                             size="sm"
-                            onClick={handleClose}
-                            className="bg-white/10 hover:bg-white/20 text-white border-white/20 rounded-full w-8 h-8 p-0"
+                            onClick={() => setOpen(true)}
+                            className='rounded-full w-10 h-10 p-0 hover:bg-gray-100 transition-all group'
                         >
-                            <X className="w-4 h-4" />
+                            <ArrowRight className='w-5 h-5 text-gray-600 group-hover:text-gray-900 transition-all group-hover:translate-x-0.5' />
                         </Button>
+                    )}
+                </div>
+            </div>
+
+            {/* Preview section - desktop only */}
+            {!isMobile && (
+                <div className='flex flex-col gap-5 items-center justify-center'>
+                    <div className='font-extralight text-muted-foreground'>Memory Preview</div>
+                    <StampPreview
+                        headline={title}
+                        location={location}
+                        handle={handle}
+                        date={new Date().toLocaleDateString()}
+                        imageSrc={previewUrl}
+                        layout={orientation}
+                    />
+                    <div className='flex items-center justify-center gap-2'>
+                        <Button
+                            variant='outline'
+                            className={cn('!w-7 h-12 p-0', orientation == 'vertical' ? '!bg-black/20' : 'bg-transparent')}
+                            onClick={() => setOrientation('vertical')}
+                        />
+                        <Button
+                            variant='outline'
+                            className={cn('w-10 h-7 p-0', orientation == 'horizontal' ? '!bg-black/20' : 'bg-transparent')}
+                            onClick={() => setOrientation('horizontal')}
+                        />
                     </div>
-                </CardHeader>
-
-                <CardContent className={`overflow-y-auto ${isMobile ? 'p-4 space-y-4' : 'p-6 space-y-6'}`}>
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        {/* File Upload Area */}
-                        <div className="space-y-2">
-                            <Label htmlFor="file-upload" className="text-white font-medium">
-                                Image
-                            </Label>
-                            <div
-                                className={`border-2 border-dashed border-white/20 rounded-lg p-6 text-center hover:border-white/40 transition-colors cursor-pointer ${selectedFile ? 'bg-white/5' : 'bg-white/5'}`}
-                                onDragOver={handleDragOver}
-                                onDrop={handleDrop}
-                                onClick={() => fileInputRef.current?.click()}
-                            >
-                                {previewUrl ? (
-                                    <div className="space-y-4">
-                                        <img
-                                            src={previewUrl}
-                                            alt="Preview"
-                                            className="max-h-48 mx-auto rounded-lg object-cover"
-                                        />
-                                        <p className="text-white/70 text-sm">
-                                            Click to change image
-                                        </p>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-4">
-                                        <div className="w-16 h-16 mx-auto rounded-full bg-white/10 flex items-center justify-center">
-                                            <Upload className="w-8 h-8 text-white/70" />
-                                        </div>
-                                        <div>
-                                            <p className="text-white font-medium mb-1">
-                                                Drop your image here, or click to browse
-                                            </p>
-                                            <p className="text-white/60 text-sm">
-                                                Supports JPG, PNG, GIF up to 10MB
-                                            </p>
-                                        </div>
-                                    </div>
-                                )}
-                                <input
-                                    ref={fileInputRef}
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={handleFileSelect}
-                                    className="hidden"
-                                    id="file-upload"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Title Input */}
-                        <div className="space-y-2">
-                            <Label htmlFor="title" className="text-white font-medium flex items-center gap-2">
-                                <ImageIcon className="w-4 h-4" />
-                                Title *
-                            </Label>
-                            <Input
-                                id="title"
-                                type="text"
-                                placeholder="Give your memory a title..."
-                                value={title}
-                                onChange={(e) => setTitle(e.target.value)}
-                                className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40"
-                                required
-                            />
-                        </div>
-
-                        {/* Location Input */}
-                        <div className="space-y-2">
-                            <Label htmlFor="location" className="text-white font-medium flex items-center gap-2">
-                                <MapPin className="w-4 h-4" />
-                                Location
-                            </Label>
-                            <Input
-                                id="location"
-                                type="text"
-                                placeholder="Where was this memory captured?"
-                                value={location}
-                                onChange={(e) => setLocation(e.target.value)}
-                                className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40"
-                            />
-                        </div>
-
-                        {/* Submit Buttons */}
-                        <div className="flex gap-3 pt-4 border-t border-white/10">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={handleClose}
-                                className="flex-1 bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/30"
-                                disabled={isUploading}
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                type="submit"
-                                className="flex-1 bg-purple-600 hover:bg-purple-700 text-white border-0"
-                                disabled={!selectedFile || !title.trim() || isUploading}
-                            >
-                                {isUploading ? (
-                                    <>
-                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                                        Uploading...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Upload className="w-4 h-4 mr-2" />
-                                        Upload Memory
-                                    </>
-                                )}
-                            </Button>
-                        </div>
-                    </form>
-                </CardContent>
-            </Card>
+                </div>
+            )}
         </div>
     )
 }
 
 export default UploadModal
+

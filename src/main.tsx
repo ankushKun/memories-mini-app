@@ -34,7 +34,7 @@ function Main() {
           // just raise an issue and I'll try my best to add that
           // new AosyncStrategy()
         ],
-        permissions: ["ACCESS_ADDRESS", "SIGNATURE", "SIGN_TRANSACTION"],
+        permissions: ["ACCESS_ADDRESS", "SIGNATURE", "SIGN_TRANSACTION", "ACCESS_PUBLIC_KEY"],
       }}
       theme={{ displayTheme: "dark" }}
     >

@@ -6,8 +6,9 @@ import { clearImageUrlCache } from '../utils/generate-grid'
 import { useIsMobile } from '../hooks/use-mobile'
 import { Button } from './ui/button'
 import { Card, CardContent } from './ui/card'
-import { Home, Plus, User, RefreshCw } from 'lucide-react'
+import { Home, Plus, User, RefreshCw, Upload } from 'lucide-react'
 import { useActiveAddress, useConnection, useProfileModal } from '@arweave-wallet-kit/react'
+import { MemoriesLogo } from './landing-page'
 
 // GraphQL query for fetching Arweave transactions
 const MEMORIES_QUERY = `query GetMemories($after: String) {
@@ -285,56 +286,9 @@ const GalleryPage: React.FC = () => {
     }, [navigate])
 
     return (
-        <div className="relative w-full h-screen bg-gradient-to-br from-black via-gray-900 to-black">
-            {/* Header Controls */}
-            <div className="absolute top-4 min-w-1/2 max-w-screen w-[90vw] md:w-fit left-1/2 transform -translate-x-1/2 z-10">
-                <Card className="bg-black/20 backdrop-blur-md border-white/10 rounded-3xl p-0 py-3">
-                    <CardContent className="p-0 px-4">
-                        <div className="flex items-center justify-between">
-                            {/* Left - Home Icon */}
-                            <Button
-                                onClick={handleBackToHome}
-                                variant="ghost"
-                                size="sm"
-                                className="text-white/80 hover:text-white hover:bg-white/10 p-2"
-                            >
-                                <Home className="w-5 h-5" />
-                            </Button>
-
-                            {/* Center - Gallery Title */}
-                            <div className="text-white font-semibold text-lg">
-                                Gallery
-                            </div>
-
-                            {/* Right - Profile and Refresh Icons */}
-                            <div className="flex items-center gap-2">
-                                {!isLoadingArweave && (
-                                    <Button
-                                        onClick={refreshMemories}
-                                        variant="ghost"
-                                        size="sm"
-                                        className="text-white/80 hover:text-white hover:bg-white/10 p-2"
-                                        title="Refresh memories"
-                                    >
-                                        <RefreshCw className="w-4 h-4" />
-                                    </Button>
-                                )}
-                                {connected ? (
-                                    <Button
-                                        onClick={() => setOpen(true)}
-                                        variant="ghost"
-                                        size="sm"
-                                        className="text-white/80 hover:text-white hover:bg-white/10 p-2"
-                                    >
-                                        <User className="w-5 h-5" />
-                                    </Button>
-                                ) : (
-                                    <div className="w-9 h-9"></div>
-                                )}
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+        <div className="relative w-full h-screen bg-black">
+            <div className='absolute top-10 left-10 z-40'>
+                <MemoriesLogo theme='light' />
             </div>
 
             {/* Loading State */}
@@ -387,70 +341,25 @@ const GalleryPage: React.FC = () => {
                     ref={canvasRef}
                     items={items}
                     itemSize={isMobile ? 150 : 200}
-                    gap={isMobile ? 10 : 20}
+                    gap={isMobile ? 20 : 40}
                     isPending={isPending}
                     onImageClick={handleImageClick}
                 />
             )}
 
             {/* Floating Action Button */}
-            <div className={`fixed z-20 ${isMobile ? 'bottom-40 right-4' : 'bottom-8 right-8'}`}>
-                <div className="relative">
-                    {/* Glow effect */}
-                    <div className={`absolute inset-0 ${isMobile ? 'h-12' : 'h-14'} rounded-full bg-purple-500/30 blur-lg animate-pulse`}></div>
-
-                    {/* Main button */}
-                    <Button
-                        onClick={handleBackToHome}
-                        size={isMobile ? "default" : "lg"}
-                        className={`relative ${isMobile ? 'h-12 px-4' : 'h-14 px-6'} rounded-full bg-black/20 backdrop-blur-md border border-white/20 text-white hover:bg-black/30 hover:border-white/30 shadow-2xl transition-all duration-200 hover:scale-105 active:scale-95 group`}
-                    >
-                        <Plus className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} transition-transform duration-200 group-hover:rotate-90 mr-2`} />
-                        <span className={`font-medium ${isMobile ? 'text-sm' : 'text-base'}`}>add memory</span>
-                    </Button>
-                </div>
+            <div className={`fixed z-20 top-10 right-10`}>
+                <Button
+                    className="bg-[#000DFF] text-white border border-[#2C2C2C] px-6 py-3 text-base font-medium rounded-md flex items-center gap-2"
+                    variant="ghost"
+                    onClick={handleBackToHome}
+                >
+                    <Upload className="w-4 h-4" />
+                    Upload Now
+                </Button>
             </div>
 
-            {/* Gallery Info and Load More */}
-            <div className={`absolute ${isMobile ? 'bottom-4 left-4 right-4' : 'bottom-8 left-8 max-w-md'}`}>
-                <Card className="bg-black/20 backdrop-blur-md border-white/10">
-                    <CardContent className={isMobile ? "p-4" : "p-6"}>
-                        <div className="flex items-center justify-between mb-2">
-                            <h2 className={`text-white font-bold ${isMobile ? 'text-lg' : 'text-xl'}`}>
-                                Memories Gallery
-                            </h2>
-                            {!isLoadingArweave && !error && (
-                                <div className="text-white/60 text-sm">
-                                    {arweaveImageMap.size} images
-                                </div>
-                            )}
-                        </div>
-                        <p className={`text-white/80 leading-relaxed mb-4 ${isMobile ? 'text-xs' : 'text-sm'}`}>
-                            {arweaveImageMap.size > 0
-                                ? `Your image memories stored on Arweave. ${isMobile ? 'Touch and drag to pan, pinch to zoom.' : 'Drag anywhere to pan around, scroll to navigate through the gallery.'}`
-                                : 'Your image memories from Arweave will appear here. Upload some image memories to get started!'
-                            }
-                        </p>
-                        {hasNextPage && !isLoadingArweave && !error && (
-                            <Button
-                                onClick={loadMoreMemories}
-                                disabled={isLoadingMore}
-                                className="w-full bg-white/10 hover:bg-white/20 text-white border-white/20"
-                                size="sm"
-                            >
-                                {isLoadingMore ? (
-                                    <>
-                                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
-                                        Loading...
-                                    </>
-                                ) : (
-                                    'Load More Memories'
-                                )}
-                            </Button>
-                        )}
-                    </CardContent>
-                </Card>
-            </div>
+
 
             {/* Image Modal */}
             <ImageModal

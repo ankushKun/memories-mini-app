@@ -1,5 +1,6 @@
 import React, { useRef, useState, useCallback, useEffect, useMemo, forwardRef, useImperativeHandle } from 'react'
 import { useIsMobile } from '../hooks/use-mobile'
+import StampPreview from './stamp-preview'
 
 export interface CanvasItem {
     id: string
@@ -93,14 +94,14 @@ const CanvasItemComponent = React.memo<{
                 left: item.x,
                 top: item.y,
                 width: item.width,
-                height: item.height
+                height: item.height // Square aspect ratio for noText stamps
             }}
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
         >
-            <div className="relative w-full h-full rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 bg-white/10 backdrop-blur-sm">
+            <div className="relative w-full h-full transition-all duration-300 hover:scale-105">
                 {!imageLoaded && !imageError && (
                     <div className="absolute inset-0 flex items-center justify-center bg-gray-800/50">
                         <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -111,23 +112,23 @@ const CanvasItemComponent = React.memo<{
                         Failed to load
                     </div>
                 )}
-                <img
-                    src={item.imageUrl}
-                    alt={item.title || `Item ${item.id}`}
-                    className={`w-full h-full object-cover transition-opacity select-none duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'
-                        }`}
-                    draggable={false}
-                    loading="lazy"
-                    decoding="async"
-                    onLoad={() => setImageLoaded(true)}
-                    onError={() => setImageError(true)}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                {item.title && (
-                    <div className="absolute bottom-0 left-0 right-0 p-3 text-white text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        {item.title}
-                    </div>
-                )}
+                <div
+                    className={`transition-opacity duration-300 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                    style={{ height: '100%', width: '100%' }}
+                >
+                    <StampPreview
+                        headline=""
+                        location=""
+                        handle=""
+                        date=""
+                        imageSrc={item.imageUrl}
+                        layout="vertical"
+                        noText={true}
+                        onLoad={() => setImageLoaded(true)}
+                        onError={() => setImageError(true)}
+                        className="w-full h-full"
+                    />
+                </div>
             </div>
         </div>
     )
