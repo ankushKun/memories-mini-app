@@ -292,10 +292,19 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
                                 className="hidden"
                             />
                             <div className='flex flex-col items-center justify-center h-full gap-2'>
-                                {selectedFile ? (
+                                {selectedFile && previewUrl ? (
                                     <>
-                                        <ImageIcon className={cn('text-green-600', isMobile ? 'w-6 h-6' : 'w-8 h-8')} />
-                                        <p className={cn('font-medium text-gray-700 text-center px-2', isMobile ? 'text-xs' : 'text-sm')}>{selectedFile.name}</p>
+                                        <div className={cn(
+                                            'rounded-lg overflow-hidden border border-gray-300 bg-gray-100',
+                                            isMobile ? 'w-16 h-16' : 'w-20 h-20'
+                                        )}>
+                                            <img
+                                                src={previewUrl}
+                                                alt="Preview"
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
+                                        <p className={cn('font-medium text-gray-700 text-center px-2 line-clamp-1', isMobile ? 'text-xs' : 'text-sm')}>{selectedFile.name}</p>
                                         <p className='text-xs text-gray-500'>Click to change</p>
                                     </>
                                 ) : (
