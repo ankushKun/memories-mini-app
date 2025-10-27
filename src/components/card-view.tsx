@@ -61,7 +61,7 @@ const CardView: React.FC<CardViewProps> = ({ items, onImageClick }) => {
     }
 
     return (
-        <div className="w-screen mx-auto h-full flex items-center justify-center p-0 md:px-20 py-16 md:py-24 !overflow-clip">
+        <div className="w-screen mx-auto h-full flex items-center justify-center px-4 md:px-20 py-16 md:py-24 overflow-visible">
             <Carousel
                 opts={{
                     align: "center",
@@ -76,7 +76,7 @@ const CardView: React.FC<CardViewProps> = ({ items, onImageClick }) => {
                         return (
                             <CarouselItem
                                 key={item.id}
-                                className="basis-full md:basis-1/5 mx-auto flex items-center justify-center"
+                                className="basis-full md:basis-1/5 mx-auto flex items-center justify-center px-2 md:px-4"
                             >
                                 <div
                                     className={`cursor-pointer transition-all mx-auto relative duration-500 flex items-center justify-center ease-out ${isCenterItem
@@ -92,9 +92,10 @@ const CardView: React.FC<CardViewProps> = ({ items, onImageClick }) => {
                                         date={formatDate(item.metadata?.date)}
                                         imageSrc={item.imageUrl}
                                         layout="vertical"
-                                        className="w-full h-auto drop-shadow-2xl"
+                                        className="w-full max-w-[90vw] md:max-w-full h-auto drop-shadow-2xl"
                                     />
                                 </div>
+
                             </CarouselItem>
                         )
                     })}
