@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { ArrowRight, Upload, Image as ImageIcon, ArrowLeft } from 'lucide-react'
+import { ArrowRight, Upload, Image as ImageIcon, ArrowLeft, Check } from 'lucide-react'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { useIsMobile } from '../hooks/use-mobile'
@@ -7,6 +7,8 @@ import { MemoriesLogo } from './landing-page'
 import { useActiveAddress, useApi, useConnection, useProfileModal } from '@arweave-wallet-kit/react'
 import StampPreview from './stamp-preview'
 import { cn } from '@/lib/utils'
+import postcardV from '@/assets/postcard-v.svg'
+import postcardH from '@/assets/postcard-h.svg'
 
 interface UploadModalProps {
     isOpen: boolean
@@ -256,7 +258,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
                             Location <span className='text-red-500'>*</span>
                         </div>
                         <Input
-                            placeholder='Where was this memory taken'
+                            placeholder='Anywhere, Earth'
                             className={cn('w-full border border-black/20 rounded-lg', isMobile ? 'p-3 text-sm' : 'p-5')}
                             value={location}
                             onChange={(e) => setLocation(e.target.value)}
@@ -408,15 +410,31 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
                     />
                     <div className='flex items-center justify-center gap-2'>
                         <Button
-                            variant='outline'
-                            className={cn('!w-7 h-12 p-0', orientation == 'vertical' ? '!bg-black/20' : 'bg-transparent')}
+                            variant='ghost'
+                            className={cn('!w-7 rounded-none h-12 p-0', orientation == 'vertical' ? '' : 'opacity-50')}
+                            style={{
+                                backgroundImage: `url(${postcardV})`,
+                                backgroundSize: 'contain',
+                                backgroundRepeat: 'no-repeat',
+                                backgroundPosition: 'center',
+                            }}
                             onClick={() => setOrientation('vertical')}
-                        />
+                        >
+                            {orientation == "vertical" && <Check className='w-4 h-4' color='black' />}
+                        </Button>
                         <Button
-                            variant='outline'
-                            className={cn('w-10 h-7 p-0', orientation == 'horizontal' ? '!bg-black/20' : 'bg-transparent')}
+                            variant='ghost'
+                            className={cn('w-10 rounded-none h-7 p-0', orientation == 'horizontal' ? '' : 'opacity-50')}
                             onClick={() => setOrientation('horizontal')}
-                        />
+                            style={{
+                                backgroundImage: `url(${postcardH})`,
+                                backgroundSize: 'contain',
+                                backgroundRepeat: 'no-repeat',
+                                backgroundPosition: 'center',
+                            }}
+                        >
+                            {orientation == "horizontal" && <Check className='w-4 h-4' color='black' />}
+                        </Button>
                     </div>
                 </div>
             )}

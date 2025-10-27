@@ -45,6 +45,23 @@ const ImageModal: React.FC<ImageModalProps> = ({ item, isOpen, onClose }) => {
         }
     }, [isOpen, item?.id])
 
+    // Handle ESC key press to close modal
+    useEffect(() => {
+        const handleEscKey = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && isOpen) {
+                onClose()
+            }
+        }
+
+        if (isOpen) {
+            window.addEventListener('keydown', handleEscKey)
+        }
+
+        return () => {
+            window.removeEventListener('keydown', handleEscKey)
+        }
+    }, [isOpen, onClose])
+
     const captureStampAsImage = async (): Promise<Blob | null> => {
         // Always capture the horizontal version
         if (!hiddenHorizontalRef.current) return null
@@ -128,31 +145,30 @@ const ImageModal: React.FC<ImageModalProps> = ({ item, isOpen, onClose }) => {
 
     return (
         <div
-            className={`fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8 transition-all duration-300 ease-out ${isAnimating
+            className={`fixed inset-0 z-50 flex flex-col items-center justify-center p-4 md:p-8 transition-all duration-300 ease-out ${isAnimating
                 ? 'bg-black/90 backdrop-blur-md'
                 : 'bg-black/0 backdrop-blur-none'
                 }`}
             onClick={handleBackdropClick}
         >
-            {/* Close button */}
-            <Button
-                variant="ghost"
-                size="sm"
-                onClick={onClose}
-                className={`absolute top-6 right-6 z-10 bg-black/60 hover:bg-black/80 text-white border-white/20 rounded-full w-12 h-12 p-0 transition-all duration-300 ${isAnimating ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
-                    }`}
-            >
-                <X className="w-6 h-6" />
-            </Button>
-
             {/* Stamp Preview - centered with animation */}
             <div
-                className={`flex items-center w-full h-full justify-center transition-all duration-300 ease-out ${isMobile ? 'w-80' : 'w-[600px]'
+                className={`relative flex items-center h-full justify-center transition-all duration-300 ease-out ${isMobile ? 'w-80' : 'w-[600px]'
                     } ${isAnimating
                         ? 'opacity-100 scale-100 translate-y-0'
                         : 'opacity-0 scale-90 translate-y-4'
                     }`}
             >
+                {/* Close button */}
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onClose}
+                    className={`absolute top-5 -right-10 z-10 bg-black/60 hover:bg-black/80 text-white border-white/20 rounded-full w-12 h-12 p-0 transition-all duration-300 ${isAnimating ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
+                        }`}
+                >
+                    <X className="w-6 h-6" />
+                </Button>
                 <StampPreview
                     headline={item.title || 'Memory'}
                     location={details.location?.toUpperCase() || 'UNKNOWN LOCATION'}
@@ -192,7 +208,8 @@ const ImageModal: React.FC<ImageModalProps> = ({ item, isOpen, onClose }) => {
             <Button
                 onClick={handleShare}
                 disabled={isCapturing}
-                className={`absolute bottom-6 left-6 bg-white hover:bg-white/90 text-black border-0 px-6 py-3 text-base font-medium flex items-center justify-center gap-2 disabled:opacity-50 transition-all duration-300 shadow-lg ${isAnimating ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
+                size='lg'
+                className={`absolute h-12 bottom-6 left-6 bg-[#000DFF] hover:bg-[#000DFF]/90 text-white border border-[#2C2C2C] px-6 py-3 text-base font-medium flex items-center justify-center gap-2 disabled:opacity-50 transition-all duration-300 shadow-lg ${isAnimating ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
                     }`}
             >
                 <Share2 className="w-4 h-4" />

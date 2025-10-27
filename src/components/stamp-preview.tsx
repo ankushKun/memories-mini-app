@@ -60,7 +60,7 @@ export default function StampPreview({
 
     return (
         <div
-            className={cn(`relative text-black overflow-clip`,
+            className={cn(`relative text-black w-full overflow-clip`,
                 noText ? 'aspect-[1/1]' : layout === 'horizontal' ? 'aspect-[1.66/1] min-w-4xl' : 'aspect-[1/1.66] max-w-lg',
                 className
             )}
@@ -146,7 +146,7 @@ export default function StampPreview({
                         <img
                             src={imageSrc}
                             alt={headline}
-                            className="absolute inset-0 w-full h-full object-cover object-center"
+                            className="absolute inset-0 bg-white w-full h-full object-cover object-center"
                             onLoad={onLoad}
                             onError={onError}
                             loading="lazy"
@@ -165,7 +165,7 @@ export default function StampPreview({
                     {/* Date stamp - Position varies by layout */}
                     {!noText && <div
                         className={cn(
-                            "absolute text-[#000DFF] invert font-medium tracking-wider z-10",
+                            "absolute text-white font-medium tracking-wider z-10",
                             layout === 'horizontal'
                                 ? 'right-8 bottom-8 text-base'
                                 : 'right-12 bottom-12 text-lg'
@@ -173,7 +173,8 @@ export default function StampPreview({
                         style={{
                             writingMode: 'vertical-rl',
                             textOrientation: 'mixed',
-                            letterSpacing: '0.2em'
+                            letterSpacing: '0.2em',
+                            mixBlendMode: 'difference'
                         }}
                     >
                         {date}

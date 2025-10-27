@@ -85,6 +85,23 @@ const CopySharePopup: React.FC<CopySharePopupProps> = ({
         }
     }, [status, countdown])
 
+    // Handle ESC key press to close popup
+    useEffect(() => {
+        const handleEscKey = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && isOpen) {
+                onClose()
+            }
+        }
+
+        if (isOpen) {
+            window.addEventListener('keydown', handleEscKey)
+        }
+
+        return () => {
+            window.removeEventListener('keydown', handleEscKey)
+        }
+    }, [isOpen, onClose])
+
     const openTwitter = () => {
         const encodedText = encodeURIComponent(tweetText)
         const twitterUrl = `https://twitter.com/intent/tweet?text=${encodedText}`
@@ -108,15 +125,15 @@ const CopySharePopup: React.FC<CopySharePopupProps> = ({
 
     return (
         <div
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 flex items-center justify-center p-4"
             onClick={handleBackdropClick}
         >
-            <Card className={`bg-slate-900/95 border-white/10 w-full max-w-md overflow-hidden shadow-2xl rounded-xl animate-in fade-in-0 zoom-in-95 duration-200`}>
+            <Card className={`bg-black/90 border border-[#2C2C2C] w-full max-w-md overflow-hidden shadow-2xl rounded-xl animate-in fade-in-0 zoom-in-95 duration-200`}>
                 <CardContent className="p-6 space-y-6">
                     {/* Header */}
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                            <div className="w-10 h-10 bg-[#000DFF] rounded-full flex items-center justify-center">
                                 <Twitter className="w-5 h-5 text-white" />
                             </div>
                             <h2 className="text-white font-semibold text-lg">
@@ -127,7 +144,7 @@ const CopySharePopup: React.FC<CopySharePopupProps> = ({
                             variant="ghost"
                             size="sm"
                             onClick={onClose}
-                            className="bg-white/10 hover:bg-white/20 text-white border-white/20 rounded-full w-8 h-8 p-0"
+                            className="bg-black/60 hover:bg-black/80 text-white border-white/20 rounded-full w-8 h-8 p-0"
                         >
                             <X className="w-4 h-4" />
                         </Button>
@@ -169,8 +186,8 @@ const CopySharePopup: React.FC<CopySharePopupProps> = ({
 
                         {status === 'countdown' && (
                             <>
-                                <div className="w-16 h-16 mx-auto bg-blue-500/20 rounded-full flex items-center justify-center">
-                                    <span className="text-2xl font-bold text-blue-400">
+                                <div className="w-16 h-16 mx-auto bg-[#000DFF]/20 rounded-full flex items-center justify-center">
+                                    <span className="text-2xl font-bold text-[#000DFF]">
                                         {countdown}
                                     </span>
                                 </div>
@@ -207,7 +224,7 @@ const CopySharePopup: React.FC<CopySharePopupProps> = ({
                         {status === 'countdown' && (
                             <Button
                                 onClick={handleManualTwitterOpen}
-                                className="w-full bg-black hover:bg-gray-900 text-white border border-white/20"
+                                className="w-full bg-[#000DFF] hover:bg-[#000DFF]/90 text-white border border-[#2C2C2C]"
                             >
                                 <Twitter className="w-4 h-4 mr-2" />
                                 Open X Now
@@ -218,7 +235,7 @@ const CopySharePopup: React.FC<CopySharePopupProps> = ({
                             <>
                                 <Button
                                     onClick={handleCopyToClipboard}
-                                    className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+                                    className="w-full bg-[#000DFF] hover:bg-[#000DFF]/90 text-white border border-[#2C2C2C]"
                                 >
                                     <Copy className="w-4 h-4 mr-2" />
                                     Try Again
@@ -226,7 +243,7 @@ const CopySharePopup: React.FC<CopySharePopupProps> = ({
                                 <Button
                                     onClick={handleManualTwitterOpen}
                                     variant="outline"
-                                    className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20"
+                                    className="w-full bg-white/10 border border-[#2C2C2C] text-white hover:bg-white/20"
                                 >
                                     <Twitter className="w-4 h-4 mr-2" />
                                     Open X Without Image
@@ -238,7 +255,7 @@ const CopySharePopup: React.FC<CopySharePopupProps> = ({
                             <Button
                                 onClick={onClose}
                                 variant="outline"
-                                className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20"
+                                className="w-full bg-white/10 border border-[#2C2C2C] text-white hover:bg-white/20"
                             >
                                 Cancel
                             </Button>
@@ -247,7 +264,7 @@ const CopySharePopup: React.FC<CopySharePopupProps> = ({
 
                     {/* Preview Text */}
                     {status !== 'copying' && (
-                        <div className="bg-white/5 border border-white/10 rounded-lg p-3">
+                        <div className="bg-white/5 border border-[#2C2C2C] rounded-lg p-3">
                             <p className="text-white/60 text-xs mb-1">Tweet Preview:</p>
                             <p className="text-white/80 text-sm">
                                 {tweetText.length > 100 ? `${tweetText.substring(0, 100)}...` : tweetText}

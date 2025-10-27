@@ -103,10 +103,12 @@ const CardView: React.FC<CardViewProps> = ({ items, onImageClick }) => {
 
                 {/* Navigation Buttons */}
                 <CarouselPrevious
-                    className="left-[20%] md:left-[35%] bg-white/10 hover:bg-white/20 text-white border-white/20 backdrop-blur-sm disabled:opacity-30"
+                    size="lg"
+                    className="left-[5%] h-12 w-12 md:left-[37%] !bg-black/50 hover:bg-black/60 text-white border-white/20 backdrop-blur-sm disabled:opacity-30"
                 />
                 <CarouselNext
-                    className="right-[20%] md:right-[35%] bg-white/10 hover:bg-white/20 text-white border-white/20 backdrop-blur-sm disabled:opacity-30"
+                    size="lg"
+                    className="right-[5%] h-12 w-12 md:right-[37%] !bg-black/50 hover:bg-black/60 text-white border-white/20 backdrop-blur-sm disabled:opacity-30"
                 />
 
 
