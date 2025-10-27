@@ -321,18 +321,18 @@ const LandingPage: React.FC = () => {
                     {/* Left Content */}
                     <div className="space-y-8">
                         <div className="space-y-6">
-                            <h2 className="text-white font-instrument text-4xl md:text-8xl leading-[90px]">
+                            <h2 className="text-white font-instrument text-4xl md:text-8xl md:leading-[90px]">
                                 {/* Your memories are rented, let's change that! */}
                                 If you could store one memory forever what would it be?
                             </h2>
-                            <p className="font-montserrat text-white text-lg md:text-xl leading-relaxed max-w-xl">
+                            <p className="font-montserrat text-white md:text-xl leading-relaxed max-w-xl">
                                 {/* If you could store one memory forever what would it be? Store your first permanent memory for <span className="text-white font-medium">free</span> with Arweave today */}
                                 Your memories are rented, let's change that!<br />
                                 Store your first permanent memory for <span className="text-white font-medium">free</span> with Arweave today
                             </p>
                         </div>
 
-                        <div className="flex flex-col sm:flex-row items-start gap-4">
+                        <div className="flex flex-row items-start gap-4">
                             <div className='flex flex-col items-center gap-3'>
                                 <Button
                                     className="bg-[#000DFF] h-12 text-white border border-[#2C2C2C] px-6 py-3 text-base font-medium rounded-md flex items-center gap-2"
@@ -357,7 +357,7 @@ const LandingPage: React.FC = () => {
 
                     {/* Right Content - Stamp Preview */}
                     <div className="flex justify-center items-center">
-                        <div className="relative w-full max-w-lg">
+                        <div className="relative w-full max-w-lg left-4 md:left-0">
                             {isLoadingMemories ? (
                                 <div className="flex items-center justify-center h-[400px]">
                                     <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
