@@ -2,11 +2,12 @@ import React, { useState, useMemo, useCallback, useRef, useTransition, useEffect
 import { useNavigate } from 'react-router'
 import InfiniteCanvas, { type CanvasItem, type InfiniteCanvasRef } from './infinite-canvas'
 import ImageModal from './image-modal'
+import ListViewComponent from './list-view'
 import { clearImageUrlCache } from '../utils/generate-grid'
 import { useIsMobile } from '../hooks/use-mobile'
 import { Button } from './ui/button'
 import { Card, CardContent } from './ui/card'
-import { Home, Plus, User, RefreshCw, Upload } from 'lucide-react'
+import { Home, Plus, User, RefreshCw, Upload, LayoutGrid, List, LayoutList } from 'lucide-react'
 import { useActiveAddress, useConnection, useProfileModal } from '@arweave-wallet-kit/react'
 import { MemoriesLogo } from './landing-page'
 
@@ -100,6 +101,7 @@ const GalleryPage: React.FC = () => {
     const [isPending, startTransition] = useTransition()
     const [selectedImage, setSelectedImage] = useState<CanvasItem | null>(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
+    const [viewMode, setViewMode] = useState<'grid' | 'list' | 'card'>('grid')
     const canvasRef = useRef<InfiniteCanvasRef>(null)
     const isMobile = useIsMobile()
     const navigate = useNavigate()
@@ -335,8 +337,8 @@ const GalleryPage: React.FC = () => {
                 </div>
             )}
 
-            {/* Infinite Canvas */}
-            {arweaveImageMap.size > 0 && (
+            {/* Infinite Canvas - Grid View */}
+            {arweaveImageMap.size > 0 && viewMode === 'grid' && (
                 <InfiniteCanvas
                     ref={canvasRef}
                     items={items}
@@ -345,6 +347,16 @@ const GalleryPage: React.FC = () => {
                     isPending={isPending}
                     onImageClick={handleImageClick}
                 />
+            )}
+
+            {/* List View */}
+            {arweaveImageMap.size > 0 && viewMode === 'list' && (
+                <div className="absolute inset-0 pt-24 z-10">
+                    <ListViewComponent
+                        items={items}
+                        onImageClick={handleImageClick}
+                    />
+                </div>
             )}
 
             {/* Floating Action Button */}
@@ -357,6 +369,45 @@ const GalleryPage: React.FC = () => {
                     <Upload className="w-4 h-4" />
                     Upload Now
                 </Button>
+            </div>
+
+            <div className={`fixed z-20 bottom-10 right-10`}>
+                {/* button group- grid, list, card */}
+                <div className="inline-flex items-center gap-0 bg-white/10 backdrop-blur-md rounded p-1">
+                    <Button
+                        variant="ghost"
+                        onClick={() => setViewMode('grid')}
+                        className={`h-10 px-6 rounded text-sm font-medium transition-all ${viewMode === 'grid'
+                            ? 'bg-white text-black hover:bg-white'
+                            : 'text-white/70 hover:text-white hover:bg-transparent'
+                            }`}
+                        title="Grid View"
+                    >
+                        Grid
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        onClick={() => setViewMode('list')}
+                        className={`h-10 px-6 rounded text-sm font-medium transition-all ${viewMode === 'list'
+                            ? 'bg-white text-black hover:bg-white'
+                            : 'text-white/70 hover:text-white hover:bg-transparent'
+                            }`}
+                        title="List View"
+                    >
+                        List
+                    </Button>
+                    <Button
+                        variant="ghost"
+                        onClick={() => setViewMode('card')}
+                        className={`h-10 px-6 rounded text-sm font-medium transition-all ${viewMode === 'card'
+                            ? 'bg-white text-black hover:bg-white'
+                            : 'text-white/70 hover:text-white hover:bg-transparent'
+                            }`}
+                        title="Card View"
+                    >
+                        Card
+                    </Button>
+                </div>
             </div>
 
 
