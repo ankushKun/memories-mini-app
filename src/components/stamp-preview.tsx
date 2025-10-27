@@ -90,7 +90,7 @@ export default function StampPreview({
                         {/* Main headline */}
                         <div className="items-center justify-center">
                             <h1 className={cn(
-                                "font-light leading-tight font-instrument text-left text-7xl"
+                                "font-light leading-tight font-instrument text-left text-4xl md:text-7xl"
                             )}>
                                 {headline}
                             </h1>
@@ -146,7 +146,7 @@ export default function StampPreview({
                         <img
                             src={imageSrc}
                             alt={headline}
-                            className="absolute inset-0 w-full h-full object-cover object-center"
+                            className="!w-full !h-full object-cover object-center"
                             onLoad={onLoad}
                             onError={onError}
                             loading="lazy"
