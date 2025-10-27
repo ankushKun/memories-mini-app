@@ -137,7 +137,7 @@ export default function StampPreview({
 
                 {/* Image section - Right side (horizontal) or Bottom (vertical) */}
                 <div className={cn(
-                    "relative overflow-hidden",
+                    "relative overflow-hidden !w-full h-full",
                     noText
                         ? 'w-full h-full'
                         : cn("aspect-square", layout === 'horizontal' ? 'max-w-[50%]' : 'max-h-[50%]')
@@ -146,7 +146,7 @@ export default function StampPreview({
                         <img
                             src={imageSrc}
                             alt={headline}
-                            className="!w-full !h-full object-cover object-center"
+                            className="absolute inset-0 w-full h-full object-cover object-center"
                             onLoad={onLoad}
                             onError={onError}
                             loading="lazy"
