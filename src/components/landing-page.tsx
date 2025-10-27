@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router'
-import { useApi, useConnection } from '@arweave-wallet-kit/react'
+import { useActiveAddress, useApi, useConnection } from '@arweave-wallet-kit/react'
 import { Upload } from 'lucide-react'
 import { Button } from './ui/button'
 import UploadModal, { type UploadData } from './upload-modal'
@@ -105,6 +105,7 @@ const LandingPage: React.FC = () => {
     const api = useApi()
     const navigate = useNavigate()
     const { connected, connect } = useConnection()
+    const address = useActiveAddress()
 
     async function handleImageUpload(file: File, uploadData: UploadData): Promise<string> {
         if (!api) throw new Error('Wallet not initialized not found');
@@ -320,28 +321,34 @@ const LandingPage: React.FC = () => {
                     {/* Left Content */}
                     <div className="space-y-8">
                         <div className="space-y-6">
-                            <h2 className="text-white font-instrument text-4xl md:text-9xl leading-tight">
-                                Your memories are rented, let's change that!
+                            <h2 className="text-white font-instrument text-4xl md:text-8xl leading-[90px]">
+                                {/* Your memories are rented, let's change that! */}
+                                If you could store one memory forever what would it be?
                             </h2>
                             <p className="font-montserrat text-white text-lg md:text-xl leading-relaxed max-w-xl">
-                                If you could store one memory forever what would it be? Store your first permanent memory for <span className="text-white font-medium">free</span> with Arweave today
+                                {/* If you could store one memory forever what would it be? Store your first permanent memory for <span className="text-white font-medium">free</span> with Arweave today */}
+                                Your memories are rented, let's change that!<br />
+                                Store your first permanent memory for <span className="text-white font-medium">free</span> with Arweave today
                             </p>
                         </div>
 
-                        <div className="flex flex-col sm:flex-row items-center gap-4">
-                            <Button
-                                className="bg-[#000DFF] text-white border border-[#2C2C2C] px-6 py-3 text-base font-medium rounded-md flex items-center gap-2"
-                                variant="ghost"
-                                onClick={handleUploadClick}
-                            >
-                                <Upload className="w-4 h-4" />
-                                Upload Now
-                            </Button>
-                            {api && <span className='text-xs text-muted-foreground relative -top-3'>{api.id == "wauth-twitter" ? `@${api.authData?.username}` : api.address ? `${api.address.slice(0, 8)}...${api.address.slice(-4)}` : ''}</span>}
+                        <div className="flex flex-col sm:flex-row items-start gap-4">
+                            <div className='flex flex-col items-center gap-3'>
+                                <Button
+                                    className="bg-[#000DFF] h-12 text-white border border-[#2C2C2C] px-6 py-3 text-base font-medium rounded-md flex items-center gap-2"
+                                    variant="ghost"
+                                    size="lg"
+                                    onClick={handleUploadClick}
+                                >
+                                    <Upload className="w-4 h-4" />
+                                    Upload Now
+                                </Button>
+                                {/* {api && <span className='text-xs text-muted-foreground/50 relative -top-3'>{api.id == "wauth-twitter" ? `@${api.authData?.username}` : address ? `${address.slice(0, 8)}...${address.slice(-4)}` : ''}</span>} */}
+                            </div>
                             <Button
                                 variant="link"
                                 onClick={handleExploreGallery}
-                                className="p-0 m-0 text-muted-foreground font-normal hover:no-underline hover:text-foreground"
+                                className="p-0 m-0 mt-1 text-muted-foreground font-normal hover:no-underline hover:text-foreground"
                             >
                                 or <span className="underline">Explore</span> the Gallery
                             </Button>
