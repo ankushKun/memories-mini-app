@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router'
 import InfiniteCanvas, { type CanvasItem, type InfiniteCanvasRef } from './infinite-canvas'
 import ImageModal from './image-modal'
 import ListViewComponent from './list-view'
+import CardView from './card-view'
 import { clearImageUrlCache } from '../utils/generate-grid'
 import { useIsMobile } from '../hooks/use-mobile'
 import { Button } from './ui/button'
@@ -353,6 +354,16 @@ const GalleryPage: React.FC = () => {
             {arweaveImageMap.size > 0 && viewMode === 'list' && (
                 <div className="absolute inset-0 pt-24 z-10">
                     <ListViewComponent
+                        items={items}
+                        onImageClick={handleImageClick}
+                    />
+                </div>
+            )}
+
+            {/* Card View */}
+            {arweaveImageMap.size > 0 && viewMode === 'card' && (
+                <div className="absolute inset-0 z-10 overflow-visible">
+                    <CardView
                         items={items}
                         onImageClick={handleImageClick}
                     />
