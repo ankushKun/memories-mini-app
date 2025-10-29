@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react'
-import { useNavigate } from 'react-router'
+import { Link, useNavigate } from 'react-router'
 import { useActiveAddress, useApi, useConnection } from '@arweave-wallet-kit/react'
 import { Upload } from 'lucide-react'
 import { Button } from './ui/button'
@@ -15,7 +15,8 @@ const MEMORIES_QUERY = `query GetMemories($after: String) {
     transactions(
         tags: [
             {name: "App-Name", values: ["Memories-App"]}
-            {name: "App-Version", values: ["1.0.1"]}
+            {name: "App-Version", values: ["1.0.2"]}
+            {name: "Visibility", values: ["Public"]}
         ],
         after: $after
         first: 20
@@ -73,7 +74,7 @@ export async function uploadFileTurbo(file: File, api: any, tags: { name: string
         dataItemOpts: {
             tags: [
                 { name: "App-Name", value: "Memories-App" },
-                { name: "App-Version", value: "1.0.1" },
+                { name: "App-Version", value: "1.0.2" },
                 { name: "Content-Type", value: file.type ?? "application/octet-stream" },
                 { name: "Name", value: file.name ?? "unknown" },
                 ...tags
@@ -84,7 +85,7 @@ export async function uploadFileTurbo(file: File, api: any, tags: { name: string
 }
 
 export function MemoriesLogo({ theme = 'light' }: { theme?: 'light' | 'dark' }) {
-    return <div className={cn("flex items-center gap-4", theme === 'dark' ? 'invert' : '')}>
+    return <Link to="/"> <div className={cn("flex items-center drop-shadow shadow-black gap-4", theme === 'dark' ? 'invert' : '')}>
         <div className="w-10 h-10 md:w-12 md:h-12 flex-shrink-0">
             <img src="/logo.svg" alt="Memories" className="w-full h-full" />
         </div>
@@ -95,6 +96,7 @@ export function MemoriesLogo({ theme = 'light' }: { theme?: 'light' | 'dark' }) 
             <span className="text-white text-[10px] mt-0.5 font-montserrat font-light">by arweave</span>
         </div>
     </div>
+    </Link>
 }
 
 const LandingPage: React.FC = () => {
@@ -129,7 +131,8 @@ const LandingPage: React.FC = () => {
             const extraTags = [
                 { name: "Title", value: uploadData.title },
                 { name: "Location", value: uploadData.location },
-                { name: "Handle", value: uploadData.handle }
+                { name: "Handle", value: uploadData.handle },
+                { name: "Visibility", value: uploadData.isPublic ? "Public" : "Not-Public" }
             ]
 
             const id = await uploadFileTurbo(finalFile, api, extraTags);

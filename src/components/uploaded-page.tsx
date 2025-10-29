@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router'
-import { Twitter, ImageIcon } from 'lucide-react'
+import { ImageIcon } from 'lucide-react'
 import { Button } from './ui/button'
 import { useIsMobile } from '../hooks/use-mobile'
 import CopySharePopup from './copy-share-popup'
@@ -175,6 +175,26 @@ const UploadedPage: React.FC = () => {
         navigate('/gallery')
     }
 
+    const handleTelegramShare = () => {
+        if (!memoryData) return
+
+        const url = `${window.location.origin}/#/view/${memoryData.id}`
+        const text = `Check out this memory "${memoryData.title}" preserved forever on Arweave! 🌟`
+        const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`
+
+        window.open(telegramUrl, '_blank')
+    }
+
+    const handleWhatsAppShare = () => {
+        if (!memoryData) return
+
+        const url = `${window.location.origin}/#/view/${memoryData.id}`
+        const text = `Check out this memory "${memoryData.title}" preserved forever on Arweave! 🌟\n\nView it at: ${url}\n\n#PermanentOnArweave`
+        const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`
+
+        window.open(whatsappUrl, '_blank')
+    }
+
     if (isLoading) {
         return (
             <div className="min-h-screen bg-black flex items-center justify-center">
@@ -250,6 +270,27 @@ const UploadedPage: React.FC = () => {
                     >
                         {isCapturing ? 'Capturing...' : 'Share'}
                     </Button>
+
+                    {/* Social Share Buttons */}
+                    {/* <div className="grid grid-cols-2 gap-3 w-full">
+                        <Button
+                            onClick={handleTelegramShare}
+                            variant="outline"
+                            className="bg-[#0088cc]/10 border-[#0088cc]/30 text-white hover:bg-[#0088cc]/20 px-4 py-3 text-sm font-medium rounded-md flex items-center justify-center gap-2"
+                        >
+                            <Send className="w-4 h-4" />
+                            Telegram
+                        </Button>
+                        <Button
+                            onClick={handleWhatsAppShare}
+                            variant="outline"
+                            className="bg-[#25D366]/10 border-[#25D366]/30 text-white hover:bg-[#25D366]/20 px-4 py-3 text-sm font-medium rounded-md flex items-center justify-center gap-2"
+                        >
+                            <MessageCircle className="w-4 h-4" />
+                            WhatsApp
+                        </Button>
+                    </div> */}
+
                     <Button
                         onClick={handleGallery}
                         variant="outline"
@@ -262,6 +303,7 @@ const UploadedPage: React.FC = () => {
 
             {/* Copy & Share Popup */}
             <CopySharePopup
+                shareUrl={`${window.location.origin}/#/view/${memoryData?.id}`}
                 isOpen={isSharePopupOpen}
                 onClose={handleSharePopupClose}
                 polaroidBlob={capturedBlob}

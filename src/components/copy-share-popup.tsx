@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Check, Twitter, Copy, X } from 'lucide-react'
+import { Check, Twitter, Copy, X, Send, MessageCircle } from 'lucide-react'
 import { Button } from './ui/button'
 import { Card, CardContent } from './ui/card'
 import { useIsMobile } from '../hooks/use-mobile'
@@ -9,6 +9,7 @@ interface CopySharePopupProps {
     onClose: () => void
     polaroidBlob: Blob | null
     tweetText: string
+    shareUrl: string
     onTwitterOpen?: () => void
 }
 
@@ -17,24 +18,24 @@ const CopySharePopup: React.FC<CopySharePopupProps> = ({
     onClose,
     polaroidBlob,
     tweetText,
+    shareUrl,
     onTwitterOpen
 }) => {
     const isMobile = useIsMobile()
-    const [status, setStatus] = useState<'copying' | 'copied' | 'countdown' | 'error'>('copying')
+    const [status, setStatus] = useState<'select' | 'copying' | 'copied' | 'countdown' | 'error'>('select')
     const [countdown, setCountdown] = useState<number>(6)
     const [errorMessage, setErrorMessage] = useState<string>('')
+    const [selectedPlatform, setSelectedPlatform] = useState<'twitter' | 'telegram' | 'whatsapp' | null>(null)
 
     useEffect(() => {
         if (!isOpen) {
             // Reset state when popup closes
-            setStatus('copying')
+            setStatus('select')
             setCountdown(6)
             setErrorMessage('')
+            setSelectedPlatform(null)
             return
         }
-
-        // Start the copy process when popup opens
-        handleCopyToClipboard()
     }, [isOpen])
 
     const handleCopyToClipboard = async () => {
@@ -72,18 +73,18 @@ const CopySharePopup: React.FC<CopySharePopupProps> = ({
         }
     }
 
-    useEffect(() => {
-        if (status === 'countdown' && countdown > 0) {
-            const timer = setTimeout(() => {
-                setCountdown(prev => prev - 1)
-            }, 1000)
+    // useEffect(() => {
+    //     if (status === 'countdown' && countdown > 0) {
+    //         const timer = setTimeout(() => {
+    //             setCountdown(prev => prev - 1)
+    //         }, 1000)
 
-            return () => clearTimeout(timer)
-        } else if (status === 'countdown' && countdown === 0) {
-            // Open Twitter and close popup
-            openTwitter()
-        }
-    }, [status, countdown])
+    //         return () => clearTimeout(timer)
+    //     } else if (status === 'countdown' && countdown === 0) {
+    //         // Open Twitter and close popup
+    //         openTwitter()
+    //     }
+    // }, [status, countdown])
 
     // Handle ESC key press to close popup
     useEffect(() => {
@@ -102,18 +103,35 @@ const CopySharePopup: React.FC<CopySharePopupProps> = ({
         }
     }, [isOpen, onClose])
 
-    const openTwitter = () => {
-        const encodedText = encodeURIComponent(tweetText)
-        const twitterUrl = `https://twitter.com/intent/tweet?text=${encodedText}`
+    const handlePlatformSelect = async (platform: 'twitter' | 'telegram' | 'whatsapp') => {
+        setSelectedPlatform(platform)
 
-        window.open(twitterUrl, '_blank', 'noopener,noreferrer')
-        onTwitterOpen?.()
+        await handleCopyToClipboard()
+        if (platform === 'twitter') {
+            const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`
+            window.open(twitterUrl, '_blank', 'noopener,noreferrer')
+        } else if (platform === 'telegram') {
+            const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(tweetText)}`
+            window.open(telegramUrl, '_blank', 'noopener,noreferrer')
+        } else if (platform === 'whatsapp') {
+            const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(tweetText)}`
+            window.open(whatsappUrl, '_blank', 'noopener,noreferrer')
+        }
         onClose()
     }
 
-    const handleManualTwitterOpen = () => {
-        openTwitter()
-    }
+    // const openTwitter = () => {
+    //     const encodedText = encodeURIComponent(tweetText)
+    //     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodedText}`
+
+    //     window.open(twitterUrl, '_blank', 'noopener,noreferrer')
+    //     onTwitterOpen?.()
+    //     onClose()
+    // }
+
+    // const handleManualTwitterOpen = () => {
+    //     openTwitter()
+    // }
 
     const handleBackdropClick = (e: React.MouseEvent) => {
         if (e.target === e.currentTarget) {
@@ -134,10 +152,14 @@ const CopySharePopup: React.FC<CopySharePopupProps> = ({
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-[#000DFF] rounded-full flex items-center justify-center">
-                                <Twitter className="w-5 h-5 text-white" />
+                                {status === 'select' ? (
+                                    <Copy className="w-5 h-5 text-white" />
+                                ) : (
+                                    <Twitter className="w-5 h-5 text-white" />
+                                )}
                             </div>
                             <h2 className="text-white font-semibold text-lg">
-                                Share on X
+                                {status === 'select' ? 'Share Your Memory' : 'Share on X'}
                             </h2>
                         </div>
                         <Button
@@ -152,6 +174,52 @@ const CopySharePopup: React.FC<CopySharePopupProps> = ({
 
                     {/* Status Content */}
                     <div className="text-center space-y-4">
+                        {status === 'select' && (
+                            <>
+                                <div>
+                                    <h3 className="text-white font-medium text-lg mb-2">
+                                        Choose where to share
+                                    </h3>
+                                    <p className="text-white/70 text-sm">
+                                        Select your preferred platform
+                                    </p>
+                                </div>
+
+                                {/* Platform Selection Buttons */}
+                                <div className="space-y-3 pt-2">
+                                    <Button
+                                        onClick={() => handlePlatformSelect('twitter')}
+                                        className="w-full bg-[#14171A] border border-white/20 text-white hover:bg-black py-6 text-base font-medium rounded-lg flex items-center justify-center gap-3"
+                                    >
+                                        <Twitter className="w-5 h-5" />
+                                        Share on X (Twitter)
+                                    </Button>
+
+                                    <Button
+                                        onClick={() => handlePlatformSelect('telegram')}
+                                        className="w-full bg-[#0088cc]/10 border border-[#0088cc]/30 text-white hover:bg-[#0088cc]/20 py-6 text-base font-medium rounded-lg flex items-center justify-center gap-3"
+                                    >
+                                        <Send className="w-5 h-5" />
+                                        Share on Telegram
+                                    </Button>
+
+                                    <Button
+                                        onClick={() => handlePlatformSelect('whatsapp')}
+                                        className="w-full bg-[#25D366]/10 border border-[#25D366]/30 text-white hover:bg-[#25D366]/20 py-6 text-base font-medium rounded-lg flex items-center justify-center gap-3"
+                                    >
+                                        <MessageCircle className="w-5 h-5" />
+                                        Share on WhatsApp
+                                    </Button>
+                                </div>
+
+                                {/* Info Box */}
+                                <div className="bg-white/5 border border-[#2C2C2C] rounded-lg p-3 text-left">
+                                    <p className="text-white/60 text-xs">
+                                        💡 The image has been copied to your clipboard so you can paste it directly into your shared message!
+                                    </p>
+                                </div>
+                            </>
+                        )}
                         {status === 'copying' && (
                             <>
                                 <div className="w-16 h-16 mx-auto bg-white/10 rounded-full flex items-center justify-center">
@@ -175,10 +243,10 @@ const CopySharePopup: React.FC<CopySharePopupProps> = ({
                                 </div>
                                 <div>
                                     <h3 className="text-white font-medium text-lg mb-2">
-                                        Image Copied!
+                                        Image Copied to Clipboard! ✓
                                     </h3>
                                     <p className="text-white/70 text-sm">
-                                        Your polaroid has been copied to clipboard
+                                        You can now paste it anywhere you want
                                     </p>
                                 </div>
                             </>
@@ -195,8 +263,11 @@ const CopySharePopup: React.FC<CopySharePopupProps> = ({
                                     <h3 className="text-white font-medium text-lg mb-2">
                                         Opening X in {countdown} seconds...
                                     </h3>
-                                    <p className="text-white/70 text-sm">
-                                        You can paste your polaroid image in the tweet
+                                    <p className="text-white/70 text-sm mb-2">
+                                        Your image is already copied to clipboard!
+                                    </p>
+                                    <p className="text-white/60 text-xs">
+                                        Just paste it (Ctrl+V / Cmd+V) in your tweet
                                     </p>
                                 </div>
                             </>
@@ -220,50 +291,52 @@ const CopySharePopup: React.FC<CopySharePopupProps> = ({
                     </div>
 
                     {/* Actions */}
-                    <div className="space-y-3">
-                        {status === 'countdown' && (
-                            <Button
-                                onClick={handleManualTwitterOpen}
-                                className="w-full bg-[#000DFF] hover:bg-[#000DFF]/90 text-white border border-[#2C2C2C]"
-                            >
-                                <Twitter className="w-4 h-4 mr-2" />
-                                Open X Now
-                            </Button>
-                        )}
-
-                        {status === 'error' && (
-                            <>
-                                <Button
-                                    onClick={handleCopyToClipboard}
-                                    className="w-full bg-[#000DFF] hover:bg-[#000DFF]/90 text-white border border-[#2C2C2C]"
-                                >
-                                    <Copy className="w-4 h-4 mr-2" />
-                                    Try Again
-                                </Button>
+                    {status !== 'select' && (
+                        <div className="space-y-3">
+                            {/* {status === 'countdown' && (
                                 <Button
                                     onClick={handleManualTwitterOpen}
+                                    className="w-full bg-[#000DFF] hover:bg-[#000DFF]/90 text-white border border-[#2C2C2C]"
+                                >
+                                    <Twitter className="w-4 h-4 mr-2" />
+                                    Open X Now
+                                </Button>
+                            )} */}
+
+                            {/* {status === 'error' && (
+                                <>
+                                    <Button
+                                        onClick={handleCopyToClipboard}
+                                        className="w-full bg-[#000DFF] hover:bg-[#000DFF]/90 text-white border border-[#2C2C2C]"
+                                    >
+                                        <Copy className="w-4 h-4 mr-2" />
+                                        Try Again
+                                    </Button>
+                                    <Button
+                                        onClick={handleManualTwitterOpen}
+                                        variant="outline"
+                                        className="w-full bg-white/10 border border-[#2C2C2C] text-white hover:bg-white/20"
+                                    >
+                                        <Twitter className="w-4 h-4 mr-2" />
+                                        Open X Without Image
+                                    </Button>
+                                </>
+                            )} */}
+
+                            {(status === 'copying' || status === 'copied' || status === 'countdown') && (
+                                <Button
+                                    onClick={onClose}
                                     variant="outline"
                                     className="w-full bg-white/10 border border-[#2C2C2C] text-white hover:bg-white/20"
                                 >
-                                    <Twitter className="w-4 h-4 mr-2" />
-                                    Open X Without Image
+                                    Cancel
                                 </Button>
-                            </>
-                        )}
-
-                        {(status === 'copying' || status === 'copied' || status === 'countdown') && (
-                            <Button
-                                onClick={onClose}
-                                variant="outline"
-                                className="w-full bg-white/10 border border-[#2C2C2C] text-white hover:bg-white/20"
-                            >
-                                Cancel
-                            </Button>
-                        )}
-                    </div>
+                            )}
+                        </div>
+                    )}
 
                     {/* Preview Text */}
-                    {status !== 'copying' && (
+                    {status !== 'copying' && status !== 'select' && (
                         <div className="bg-white/5 border border-[#2C2C2C] rounded-lg p-3">
                             <p className="text-white/60 text-xs mb-1">Tweet Preview:</p>
                             <p className="text-white/80 text-sm">

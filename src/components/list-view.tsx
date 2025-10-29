@@ -38,8 +38,11 @@ const ListViewComponent: React.FC<ListViewProps> = ({ items, onImageClick }) => 
 
     const handleItemClick = (item: CanvasItem) => {
         setSelectedItem(item)
-        // On mobile, open modal immediately since there's no side-by-side preview
-        if (isMobile) {
+        // On mobile, directly trigger the preview if onImageClick is provided
+        if (isMobile && onImageClick) {
+            onImageClick(item)
+        } else if (isMobile) {
+            // Fallback: open modal if no onImageClick handler
             setIsModalOpen(true)
         }
     }
@@ -492,6 +495,7 @@ const ListViewComponent: React.FC<ListViewProps> = ({ items, onImageClick }) => 
 
             {/* Copy & Share Popup */}
             <CopySharePopup
+                shareUrl={`${window.location.origin}/#/view/${selectedItem?.id.split("-tile")[0]}`}
                 isOpen={isSharePopupOpen}
                 onClose={handleSharePopupClose}
                 polaroidBlob={capturedBlob}

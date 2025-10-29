@@ -9,15 +9,19 @@ import { useIsMobile } from '../hooks/use-mobile'
 import { Button } from './ui/button'
 import { Card, CardContent } from './ui/card'
 import { Home, Plus, User, RefreshCw, Upload, LayoutGrid, List, LayoutList } from 'lucide-react'
-import { useActiveAddress, useConnection, useProfileModal } from '@arweave-wallet-kit/react'
+import { useActiveAddress, useConnection, useProfileModal, useApi } from '@arweave-wallet-kit/react'
 import { MemoriesLogo } from './landing-page'
+import UploadModal, { type UploadData } from './upload-modal'
+import imageCompression from 'browser-image-compression'
+import { ArconnectSigner, TurboFactory } from '@ardrive/turbo-sdk/web'
 
 // GraphQL query for fetching Arweave transactions
 const MEMORIES_QUERY = `query GetMemories($after: String) {
     transactions(
         tags: [
             {name: "App-Name", values: ["Memories-App"]}
-            {name: "App-Version", values: ["1.0.1"]}
+            {name: "App-Version", values: ["1.0.2"]}
+            {name: "Visibility", values: ["Public"]}
         ],
         after: $after
         first: 20
@@ -80,6 +84,40 @@ const fetchMemories = async (cursor?: string): Promise<GraphQLResponse> => {
 // Create a map to store real Arweave images
 const arweaveImageMap = new Map<string, { url: string; title: string; location?: string }>()
 
+// Compression options for image upload
+const compressionOptions = {
+    maxSizeMB: 0.1, // Hard limit of 100KB
+    maxWidthOrHeight: 1200, // Balanced resolution for quality vs size
+    useWebWorker: true,
+    initialQuality: 0.9, // High quality starting point
+    maxIteration: 30, // More iterations to find optimal balance
+    fileType: 'image/jpeg', // JPEG for better compression
+    alwaysKeepResolution: false, // Allow smart resolution adjustment
+    preserveExif: false, // Remove EXIF data to save space
+}
+
+// Upload file to Arweave using Turbo
+async function uploadFileTurbo(file: File, api: any, tags: { name: string, value: string }[] = []) {
+    const signer = new ArconnectSigner(api)
+    console.log('signer', signer);
+
+    const turbo = TurboFactory.authenticated({ signer })
+    const res = await turbo.uploadFile({
+        fileStreamFactory: () => file.stream(),
+        fileSizeFactory: () => file.size,
+        dataItemOpts: {
+            tags: [
+                { name: "App-Name", value: "Memories-App" },
+                { name: "App-Version", value: "1.0.2" },
+                { name: "Content-Type", value: file.type ?? "application/octet-stream" },
+                { name: "Name", value: file.name ?? "unknown" },
+                ...tags
+            ],
+        }
+    })
+    return res.id;
+}
+
 // Function to check if a URL is a valid image
 const isValidImageUrl = async (url: string): Promise<boolean> => {
     try {
@@ -103,12 +141,15 @@ const GalleryPage: React.FC = () => {
     const [selectedImage, setSelectedImage] = useState<CanvasItem | null>(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [viewMode, setViewMode] = useState<'grid' | 'list' | 'card'>('grid')
+    const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
+    const [isUploading, setIsUploading] = useState(false)
     const canvasRef = useRef<InfiniteCanvasRef>(null)
     const isMobile = useIsMobile()
     const navigate = useNavigate()
     const address = useActiveAddress()
-    const { connected } = useConnection()
+    const { connected, connect } = useConnection()
     const { setOpen } = useProfileModal()
+    const api = useApi()
 
     // Load Arweave memories
     const loadArweaveMemories = useCallback(async (cursor?: string, append = false) => {
@@ -283,10 +324,125 @@ const GalleryPage: React.FC = () => {
         setSelectedImage(null)
     }, [])
 
-    // Handle navigation to landing page
-    const handleBackToHome = useCallback(() => {
-        navigate('/')
-    }, [navigate])
+    // Validate that the image is accessible on Arweave
+    const validateArweaveImage = async (transactionId: string, maxRetries = 10, retryDelay = 3000): Promise<boolean> => {
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                console.log(`Validating Arweave image (attempt ${attempt}/${maxRetries}): ${transactionId}`)
+
+                const response = await fetch(`https://arweave.net/${transactionId}`, {
+                    method: 'HEAD',
+                    cache: 'no-cache'
+                })
+
+                if (response.ok) {
+                    const contentType = response.headers.get('content-type')
+                    if (contentType && contentType.startsWith('image/')) {
+                        console.log('✅ Image successfully validated on Arweave')
+                        return true
+                    } else {
+                        console.log('❌ Response is not an image, content-type:', contentType)
+                    }
+                } else {
+                    console.log(`❌ HTTP ${response.status}: ${response.statusText}`)
+                }
+            } catch (error) {
+                console.log(`❌ Validation attempt ${attempt} failed:`, error)
+            }
+
+            // Wait before retrying (except on the last attempt)
+            if (attempt < maxRetries) {
+                console.log(`⏳ Waiting ${retryDelay}ms before retry...`)
+                await new Promise(resolve => setTimeout(resolve, retryDelay))
+            }
+        }
+
+        console.log('❌ Failed to validate image after all attempts')
+        return false
+    }
+
+    // Handle image upload
+    const handleImageUpload = async (file: File, uploadData: UploadData): Promise<string> => {
+        if (!api) throw new Error('Wallet not initialized not found');
+
+        console.log('originalFile instanceof Blob', file instanceof Blob);
+        console.log(`originalFile size ${file.size / 1024 / 1024} MB`);
+
+        try {
+            let finalFile = file;
+
+            // Only compress if file is larger than 100KB
+            if (file.size > 100 * 1024) {
+                console.log('File is larger than 100KB, compressing...');
+                finalFile = await imageCompression(file, compressionOptions);
+                console.log('compressedFile instanceof Blob', finalFile instanceof Blob);
+                console.log(`compressedFile size ${finalFile.size / 1024} KB`);
+            } else {
+                console.log('File is under 100KB, uploading as-is');
+            }
+
+            const extraTags = [
+                { name: "Title", value: uploadData.title },
+                { name: "Location", value: uploadData.location },
+                { name: "Handle", value: uploadData.handle },
+                { name: "Visibility", value: uploadData.isPublic ? "Public" : "Not-Public" }
+            ]
+
+            const id = await uploadFileTurbo(finalFile, api, extraTags);
+            console.log('id', id);
+            return id;
+        } catch (error) {
+            console.log(error);
+            return '';
+        }
+    }
+
+    // Handle modal upload
+    const handleModalUpload = async (uploadData: UploadData) => {
+        if (!connected) return
+
+        setIsUploading(true)
+
+        try {
+            console.log('Upload data:', uploadData)
+
+            // Upload the image to Arweave
+            const id = await handleImageUpload(uploadData.file, uploadData)
+            console.log('Upload completed, transaction ID:', id);
+
+            if (!id) {
+                throw new Error('Upload failed: No transaction ID returned')
+            }
+
+            // Validate that the image is accessible on Arweave before navigating
+            console.log('🔍 Validating image accessibility on Arweave...')
+            const isValid = await validateArweaveImage(id)
+
+            if (isValid) {
+                console.log('✅ Image validated successfully, navigating to view page')
+                // Close modal before navigating
+                setIsUploadModalOpen(false)
+                setIsUploading(false)
+                navigate(`/view/${id}`)
+            } else {
+                throw new Error('Image upload completed but failed to validate accessibility on Arweave. Please try again.')
+            }
+        } catch (error) {
+            console.error('Upload failed:', error)
+            alert(error instanceof Error ? error.message : 'Upload failed. Please try again.')
+        } finally {
+            setIsUploading(false)
+        }
+    }
+
+    // Handle upload button click
+    const handleUploadClick = useCallback(() => {
+        if (connected) {
+            setIsUploadModalOpen(true)
+        } else {
+            connect()
+        }
+    }, [connected, connect])
 
     return (
         <div className="relative w-full h-screen bg-black">
@@ -375,7 +531,7 @@ const GalleryPage: React.FC = () => {
                 <Button
                     className="bg-[#000DFF] text-white border border-[#2C2C2C] px-6 py-3 text-base font-medium rounded-md flex items-center gap-2"
                     variant="ghost"
-                    onClick={handleBackToHome}
+                    onClick={handleUploadClick}
                 >
                     <Upload className="w-4 h-4" />
                     Upload Now
@@ -428,6 +584,13 @@ const GalleryPage: React.FC = () => {
                 item={selectedImage}
                 isOpen={isModalOpen}
                 onClose={handleModalClose}
+            />
+
+            {/* Upload Modal */}
+            <UploadModal
+                isOpen={isUploadModalOpen}
+                onClose={() => setIsUploadModalOpen(false)}
+                onUpload={handleModalUpload}
             />
 
         </div >

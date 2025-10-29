@@ -12,6 +12,9 @@ import App from './App'
 import GalleryPage from './components/gallery-page'
 import UploadedPage from './components/uploaded-page'
 
+import { QuickWallet } from 'quick-wallet';
+
+
 
 
 function Main() {
@@ -25,6 +28,7 @@ function Main() {
         strategies: [
           new WAuthStrategy({ provider: WAuthProviders.X }),
           new WanderStrategy(),
+
           // Can also use more supported providers for web2 auth
           // new WAuthStrategy({ provider: WAuthProviders.Discord })
           // new WAuthStrategy({ provider: WAuthProviders.Github })

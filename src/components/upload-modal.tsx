@@ -9,6 +9,9 @@ import StampPreview from './stamp-preview'
 import { cn } from '@/lib/utils'
 import postcardV from '@/assets/postcard-v.svg'
 import postcardH from '@/assets/postcard-h.svg'
+import { Toggle } from './ui/toggle'
+import { Switch } from './ui/switch'
+import { Checkbox } from './ui/checkbox'
 
 interface UploadModalProps {
     isOpen: boolean
@@ -21,6 +24,7 @@ export interface UploadData {
     title: string
     location: string
     handle: string
+    isPublic: boolean
 }
 
 const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) => {
@@ -29,6 +33,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
     const [title, setTitle] = useState('')
     const [location, setLocation] = useState('')
     const [handle, setHandle] = useState('')
+    const [isPublic, setIsPublic] = useState(true)
     const [isUploading, setIsUploading] = useState(false)
     const [isDragging, setIsDragging] = useState(false)
     const [uploadError, setUploadError] = useState<string | null>(null)
@@ -107,7 +112,8 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
                 file: selectedFile,
                 title: title.trim(),
                 location: location.trim(),
-                handle: handle.trim()
+                handle: handle.trim(),
+                isPublic: isPublic
             }
 
             await onUpload?.(uploadData)
@@ -267,8 +273,12 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
                         />
                     </div>
                     <div className='flex flex-col gap-2'>
-                        <div className={cn('font-extralight font-instrument', isMobile ? 'text-xl' : 'text-3xl')}>
-                            Upload your memory <span className='text-red-500'>*</span>
+                        <div className={cn('font-extralight font-instrument flex gap-1 justify-between', isMobile ? 'text-xl' : 'text-3xl')}>
+                            <span>Upload your memory <span className='text-red-500'>*</span></span>
+                            <span className='flex flex-col gap-0 items-end max-w-1/3'>
+                                <span className='text-sm inline-flex items-center justify-center gap-1'>public memory <Checkbox className={cn('scale-80', isPublic ? '!bg-green-200' : '!bg-gray-200')} checked={isPublic} onClick={() => setIsPublic(!isPublic)} /></span>
+                                <span className='text-[11px] mr-1 text-right'>image will {isPublic ? 'be' : 'not be'} visible in gallery</span>
+                            </span>
                         </div>
                         <div
                             className={cn(
