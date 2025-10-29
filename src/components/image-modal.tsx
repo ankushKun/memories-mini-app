@@ -124,9 +124,14 @@ const ImageModal: React.FC<ImageModalProps> = ({ item, isOpen, onClose }) => {
         setIsSharePopupOpen(false)
     }
 
+    const getShareUrl = () => {
+        if (!item) return ''
+        return `${window.location.origin}/#/view/${item.id.split("-tile")[0]}`
+    }
+
     const getTweetText = () => {
         if (!item) return ''
-        return `Check out this memory "${item.title || 'Memory'}" preserved forever on Arweave! 🌟\n\nView it at: ${window.location.origin}/#/view/${item.id.split("-tile")[0]}\n\n#PermanentOnArweave`
+        return `Check out this memory "${item.title || 'Memory'}" preserved forever on Arweave! 🌟\n\nView it at: ${getShareUrl()}\n\n#PermanentOnArweave`
     }
 
     if (!shouldRender || !item) return null
@@ -222,6 +227,7 @@ const ImageModal: React.FC<ImageModalProps> = ({ item, isOpen, onClose }) => {
                 onClose={handleSharePopupClose}
                 polaroidBlob={capturedBlob}
                 tweetText={getTweetText()}
+                shareUrl={getShareUrl()}
                 onTwitterOpen={handleSharePopupClose}
             />
         </div>
