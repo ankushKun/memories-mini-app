@@ -104,10 +104,32 @@ const LandingPage: React.FC = () => {
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
     const [randomMemories, setRandomMemories] = useState<MemoryData[]>([])
     const [isLoadingMemories, setIsLoadingMemories] = useState(true)
+    const [prevConnected, setPrevConnected] = useState(null)
+    const [startTime, setStartTime] = useState(Date.now())
     const api = useApi()
     const navigate = useNavigate()
     const { connected, connect } = useConnection()
     const address = useActiveAddress()
+
+    useEffect(() => {
+        const now = Date.now()
+        const diffMs = (now - startTime)
+        if (diffMs < 1000) {
+            return
+        }
+
+        if (prevConnected === null) {
+            // First render - just initialize without showing modal
+            setPrevConnected(connected)
+        } else if (prevConnected === false && connected === true) {
+            // Transition from not connected to connected - show modal
+            setIsUploadModalOpen(true)
+            setPrevConnected(connected)
+        } else if (prevConnected !== connected) {
+            // Any other state change - just update prevConnected
+            setPrevConnected(connected)
+        }
+    }, [connected])
 
     async function handleImageUpload(file: File, uploadData: UploadData): Promise<string> {
         if (!api) throw new Error('Wallet not initialized not found');

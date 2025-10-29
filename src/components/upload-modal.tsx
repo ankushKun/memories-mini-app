@@ -44,8 +44,23 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
     const [orientation, setOrientation] = useState<'horizontal' | 'vertical'>('vertical')
     const address = useActiveAddress()
     const api = useApi()
-    const { connected } = useConnection()
+    const { connected, disconnect, connect } = useConnection()
     const { setOpen } = useProfileModal()
+
+    useEffect(() => {
+        if (!connected) {
+            return
+        }
+        if (!api) return
+        if (api.id == "wauth-twitter") {
+            const username = api.authData?.username
+            if (!username) {
+                console.log("No username found, disconnecting")
+                disconnect()
+                setOpen(false)
+            }
+        }
+    }, [api, connected, address])
 
     // Reset uploading state, mobile step, and error when modal closes
     useEffect(() => {
@@ -189,11 +204,6 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
 
                 {/* Upload button */}
                 <div className='w-full max-w-md flex flex-col gap-2'>
-                    {!connected && (
-                        <div className='text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-lg p-2'>
-                            Please connect your wallet to upload memories
-                        </div>
-                    )}
                     {uploadError && (
                         <div className='text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg p-2'>
                             {uploadError}
@@ -347,11 +357,6 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
                         </Button>
                     ) : (
                         <>
-                            {!connected && (
-                                <div className='text-sm text-amber-600 bg-amber-50 border border-amber-200 rounded-lg p-3'>
-                                    Please connect your wallet to upload memories
-                                </div>
-                            )}
                             {uploadError && (
                                 <div className='text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-3'>
                                     {uploadError}
@@ -374,7 +379,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
                     'flex items-center justify-between bg-white/50 backdrop-blur-sm border border-gray-200 rounded-2xl transition-all hover:bg-white/80',
                     isMobile ? 'p-3' : 'p-4'
                 )}>
-                    <div className='flex items-center gap-3'>
+                    <div className='flex items-center gap-3 w-full'>
                         <div className='relative'>
                             <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-all ${connected
                                 ? 'bg-gradient-to-br from-green-100 to-emerald-100'
@@ -384,14 +389,18 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
                                     }`} />
                             </div>
                         </div>
-                        <div className='flex flex-col'>
+                        {connected && <div className='flex flex-col'>
                             <span className={cn('text-gray-900 font-semibold', isMobile ? 'text-sm' : 'text-base')}>
-                                {connected ? 'Connected' : 'Disconnected'}
+                                Connected
                             </span>
                             <span className={cn('text-gray-500 font-medium', isMobile ? 'text-xs' : 'text-sm')}>
                                 {connected && api ? api.id == "wauth-twitter" ? <>@{api.authData?.username}</> : <>@{address.slice(0, 8)}...{address.slice(-4)}</> : <>No wallet connected</>}
                             </span>
-                        </div>
+                        </div>}
+                        {!connected && <div className='flex flex-col w-full'>
+                            <Button className='w-full grow bg-[#000DFF] text-white' onClick={connect}
+                            >Login to upload</Button>
+                        </div>}
                     </div>
                     {connected && (
                         <Button

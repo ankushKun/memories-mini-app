@@ -12,9 +12,7 @@ import App from './App'
 import GalleryPage from './components/gallery-page'
 import UploadedPage from './components/uploaded-page'
 
-import { QuickWallet } from 'quick-wallet';
-
-
+import QuickWalletStrategy from '@vela-ventures/quick-wallet-strategy'
 
 
 function Main() {
@@ -26,6 +24,7 @@ function Main() {
           logo: "t8cPU_PWjdLXRBAN89nzb9JQoRAf5ZBF2kkTZoxtJPc",
         },
         strategies: [
+          new QuickWalletStrategy(),
           new WAuthStrategy({ provider: WAuthProviders.X }),
           new WanderStrategy(),
 

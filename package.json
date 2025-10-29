@@ -47,6 +47,7 @@
     "@radix-ui/react-tooltip": "^1.2.7",
     "@tailwindcss/vite": "^4.1.11",
     "@vela-ventures/aosync-strategy": "^1.0.13",
+    "@vela-ventures/quick-wallet-strategy": "^0.1.0",
     "@wauth/sdk": "^0.0.19",
     "@wauth/strategy": "^0.0.19-1",
     "arweave": "^1.15.7",

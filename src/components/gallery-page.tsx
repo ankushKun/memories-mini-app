@@ -129,6 +129,7 @@ const isValidImageUrl = async (url: string): Promise<boolean> => {
     }
 }
 
+
 const GalleryPage: React.FC = () => {
     const [arweaveMemories, setArweaveMemories] = useState<ArweaveTransaction[]>([])
     const [validatedImages, setValidatedImages] = useState<Set<string>>(new Set())
@@ -141,15 +142,48 @@ const GalleryPage: React.FC = () => {
     const [selectedImage, setSelectedImage] = useState<CanvasItem | null>(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [viewMode, setViewMode] = useState<'grid' | 'list' | 'card'>('grid')
+    const [startTime, setStartTime] = useState(Date.now())
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
     const [isUploading, setIsUploading] = useState(false)
+    const [prevConnected, setPrevConnected] = useState(null)
     const canvasRef = useRef<InfiniteCanvasRef>(null)
     const isMobile = useIsMobile()
     const navigate = useNavigate()
     const address = useActiveAddress()
-    const { connected, connect } = useConnection()
+    const { connected, connect, disconnect } = useConnection()
     const { setOpen } = useProfileModal()
     const api = useApi()
+
+    useEffect(() => {
+        const now = Date.now()
+        const diffMs = (now - startTime)
+        if (diffMs < 1000) {
+            return
+        }
+
+        if (prevConnected === null) {
+            // First render - just initialize without showing modal
+            setPrevConnected(connected)
+        } else if (prevConnected === false && connected === true) {
+            // Transition from not connected to connected - show modal
+            setIsUploadModalOpen(true)
+            setPrevConnected(connected)
+        } else if (prevConnected !== connected) {
+            // Any other state change - just update prevConnected
+            setPrevConnected(connected)
+        }
+    }, [connected])
+
+    useEffect(() => {
+        if (!api) return
+        if (api.id == "wauth-twitter") {
+            const username = api.authData?.username
+            if (!username) {
+                console.log("No username found, disconnecting")
+                disconnect()
+            }
+        }
+    }, [api, connected, address])
 
     // Load Arweave memories
     const loadArweaveMemories = useCallback(async (cursor?: string, append = false) => {
