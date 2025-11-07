@@ -61,41 +61,42 @@ const CardView: React.FC<CardViewProps> = ({ items, onImageClick }) => {
     }
 
     return (
-        <div className="w-screen mx-auto h-full flex items-center justify-center px-4 md:px-20 py-16 md:py-24 overflow-visible">
+        <div className="w-full h-full flex items-center justify-center py-16 md:py-24">
             <Carousel
                 opts={{
                     align: "center",
                     loop: true,
                 }}
                 setApi={setApi}
-                className="overflow-visible py-8"
+                className="w-full max-w-[100vw]"
             >
-                <CarouselContent className="overflow-visible py-12 w-screen md:!w-[125vw]">
+                <CarouselContent className="-ml-4 md:-ml-8">
                     {items.map((item, index) => {
                         const isCenterItem = index === current
                         return (
                             <CarouselItem
                                 key={item.id}
-                                className="basis-full md:basis-1/5 mx-auto flex items-center justify-center px-2 md:px-4"
+                                className="pl-4 md:pl-8 basis-full"
                             >
-                                <div
-                                    className={`cursor-pointer transition-all mx-auto relative duration-500 flex items-center justify-center ease-out ${isCenterItem
-                                        ? 'md:scale-100 !z-50 opacity-100'
-                                        : 'md:!scale-80 md:opacity-60 z-10'
-                                        } hover:opacity-100`}
-                                    onClick={() => onImageClick(item)}
-                                >
-                                    <StampPreview
-                                        headline={item.title || 'Your Memory'}
-                                        location={item.metadata?.location || 'EARTH'}
-                                        handle="@memories"
-                                        date={formatDate(item.metadata?.date)}
-                                        imageSrc={item.imageUrl}
-                                        layout="vertical"
-                                        className="w-full max-w-[90vw] md:max-w-full h-auto drop-shadow-2xl"
-                                    />
+                                <div className="flex items-center justify-center h-full py-12">
+                                    <div
+                                        className={`cursor-pointer transition-all relative duration-500 ease-out ${isCenterItem
+                                            ? 'scale-100 z-50 opacity-100'
+                                            : 'scale-75 md:scale-80 z-10 opacity-60'
+                                            } hover:opacity-100`}
+                                        onClick={() => onImageClick(item)}
+                                    >
+                                        <StampPreview
+                                            headline={item.title || 'Your Memory'}
+                                            location={item.metadata?.location || 'EARTH'}
+                                            handle="@memories"
+                                            date={formatDate(item.metadata?.date)}
+                                            imageSrc={item.imageUrl}
+                                            layout="vertical"
+                                            className="w-full max-w-[80vw] md:max-w-full h-auto drop-shadow-2xl"
+                                        />
+                                    </div>
                                 </div>
-
                             </CarouselItem>
                         )
                     })}
@@ -104,14 +105,12 @@ const CardView: React.FC<CardViewProps> = ({ items, onImageClick }) => {
                 {/* Navigation Buttons */}
                 <CarouselPrevious
                     size="lg"
-                    className="left-[5%] h-12 w-12 md:left-[37%] !bg-black/50 hover:bg-black/60 text-white border-white/20 backdrop-blur-sm disabled:opacity-30"
+                    className="left-4 md:left-8 h-12 w-12 !bg-black/50 hover:bg-black/60 text-white border-white/20 backdrop-blur-sm disabled:opacity-30"
                 />
                 <CarouselNext
                     size="lg"
-                    className="right-[5%] h-12 w-12 md:right-[37%] !bg-black/50 hover:bg-black/60 text-white border-white/20 backdrop-blur-sm disabled:opacity-30"
+                    className="right-4 md:right-8 h-12 w-12 !bg-black/50 hover:bg-black/60 text-white border-white/20 backdrop-blur-sm disabled:opacity-30"
                 />
-
-
             </Carousel>
         </div>
     )

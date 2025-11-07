@@ -167,12 +167,12 @@ const ImageModal: React.FC<ImageModalProps> = ({ item, isOpen, onClose }) => {
                 {/* Close button */}
                 <Button
                     variant="ghost"
-                    size="sm"
+                    size="lg"
                     onClick={onClose}
-                    className={`absolute top-5 -right-10 z-10 bg-black/60 hover:bg-black/80 text-white border-white/20 rounded-full w-12 h-12 p-0 transition-all duration-300 ${isAnimating ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
+                    className={`absolute -top-1 z-10 -right-6 bg-black/60 !opacity-50 hover:bg-black/80 text-white border-white/20 rounded-full w-12 h-12 p-0 transition-all duration-300 ${isAnimating ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
                         }`}
                 >
-                    <X className="w-6 h-6" />
+                    <X className="!w-10 !h-10" />
                 </Button>
                 <StampPreview
                     headline={item.title || 'Memory'}
@@ -214,7 +214,7 @@ const ImageModal: React.FC<ImageModalProps> = ({ item, isOpen, onClose }) => {
                 onClick={handleShare}
                 disabled={isCapturing}
                 size='lg'
-                className={`absolute h-12 bottom-6 left-6 bg-[#000DFF] hover:bg-[#000DFF]/90 text-white border border-[#2C2C2C] px-6 py-3 text-base font-medium flex items-center justify-center gap-2 disabled:opacity-50 transition-all duration-300 shadow-lg ${isAnimating ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
+                className={`h-12 bottom-6 left-6 bg-[#000DFF] hover:bg-[#000DFF]/90 text-white border border-[#2C2C2C] px-6 py-3 text-base font-medium flex items-center justify-center gap-2 disabled:opacity-50 transition-all duration-300 shadow-lg ${isAnimating ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
                     }`}
             >
                 <Share2 className="w-4 h-4" />

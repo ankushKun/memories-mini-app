@@ -349,8 +349,10 @@ const GalleryPage: React.FC = () => {
             canvasRef.current.resetDragState()
         }
         setSelectedImage(item)
-        setIsModalOpen(true)
-    }, [])
+        console.log(viewMode)
+        if (!viewMode.includes("list"))
+            setIsModalOpen(true)
+    }, [viewMode])
 
     // Handle modal close
     const handleModalClose = useCallback(() => {
@@ -403,6 +405,9 @@ const GalleryPage: React.FC = () => {
         console.log(`originalFile size ${file.size / 1024 / 1024} MB`);
 
         try {
+            if (!connected) {
+                await connect()
+            }
             let finalFile = file;
 
             // Only compress if file is larger than 100KB
@@ -572,13 +577,13 @@ const GalleryPage: React.FC = () => {
                 </Button>
             </div>
 
-            <div className={`fixed z-20 bottom-10 right-10`}>
+            <div className={`fixed z-20 bottom-10 right-5`}>
                 {/* button group- grid, list, card */}
-                <div className="inline-flex items-center gap-0 bg-white/10 backdrop-blur-md rounded p-1">
+                <div className="inline-flex items-center gap-0 bg-[#141218]/20  text-black rounded p-1">
                     <Button
                         variant="ghost"
                         onClick={() => setViewMode('grid')}
-                        className={`h-10 px-6 rounded text-sm font-medium transition-all ${viewMode === 'grid'
+                        className={`h-10 px-6 rounded text-sm  font-medium transition-all ${viewMode === 'grid'
                             ? 'bg-white text-black hover:bg-white'
                             : 'text-white/70 hover:text-white hover:bg-transparent'
                             }`}
@@ -589,7 +594,7 @@ const GalleryPage: React.FC = () => {
                     <Button
                         variant="ghost"
                         onClick={() => setViewMode('list')}
-                        className={`h-10 px-6 rounded text-sm font-medium transition-all ${viewMode === 'list'
+                        className={`h-10 px-6 rounded text-sm  font-medium transition-all ${viewMode === 'list'
                             ? 'bg-white text-black hover:bg-white'
                             : 'text-white/70 hover:text-white hover:bg-transparent'
                             }`}
@@ -600,7 +605,7 @@ const GalleryPage: React.FC = () => {
                     <Button
                         variant="ghost"
                         onClick={() => setViewMode('card')}
-                        className={`h-10 px-6 rounded text-sm font-medium transition-all ${viewMode === 'card'
+                        className={`h-10 px-6 rounded text-sm  font-medium transition-all ${viewMode === 'card'
                             ? 'bg-white text-black hover:bg-white'
                             : 'text-white/70 hover:text-white hover:bg-transparent'
                             }`}

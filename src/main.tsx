@@ -13,9 +13,11 @@ import GalleryPage from './components/gallery-page'
 import UploadedPage from './components/uploaded-page'
 
 import QuickWalletStrategy from '@vela-ventures/quick-wallet-strategy'
+import { useEffect } from 'react';
 
 
 function Main() {
+
   return (
     <ArweaveWalletKit
       config={{

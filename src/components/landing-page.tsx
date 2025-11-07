@@ -456,7 +456,7 @@ const LandingPage: React.FC = () => {
             </div>
 
             {/* Footer */}
-            <div className="relative z-10 px-6 md:px-16 py-10 md:py-0 md:-top-6">
+            {/* <div className="relative z-10 px-6 md:px-16 py-10 md:py-0 md:-top-6">
                 <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-xs md:text-sm">
                     <div className="flex flex-col md:flex-row md:w-1/2 justify-between">
                         <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 text-white/60">
@@ -474,7 +474,7 @@ const LandingPage: React.FC = () => {
                     </div>
                     <img src={permanentImage} alt="Permanent" className="h-14" draggable={false} />
                 </div>
-            </div>
+            </div> */}
 
             {/* Upload Modal */}
             <UploadModal

@@ -43,7 +43,7 @@ const ListViewComponent: React.FC<ListViewProps> = ({ items, onImageClick }) => 
             onImageClick(item)
         } else if (isMobile) {
             // Fallback: open modal if no onImageClick handler
-            setIsModalOpen(true)
+            // setIsModalOpen(true)
         }
     }
 
@@ -53,7 +53,7 @@ const ListViewComponent: React.FC<ListViewProps> = ({ items, onImageClick }) => 
             if (onImageClick) {
                 onImageClick(selectedItem)
             } else {
-                setIsModalOpen(true)
+                // setIsModalOpen(true)
             }
         }
     }
@@ -141,10 +141,10 @@ const ListViewComponent: React.FC<ListViewProps> = ({ items, onImageClick }) => 
     // Create infinite list by repeating items multiple times (5 copies for smooth infinite scrolling)
     const infiniteItems = items.length > 0 ? [
         ...items,
-        ...items,
-        ...items,
-        ...items,
-        ...items
+        // ...items,
+        // ...items,
+        // ...items,
+        // ...items
     ] : []
 
     // Handle scroll to create infinite loop effect and update selected item
@@ -159,21 +159,21 @@ const ListViewComponent: React.FC<ListViewProps> = ({ items, onImageClick }) => 
         // Calculate the height of one complete set of items
         const singleSetHeight = scrollHeight / 5 // We have 5 copies
 
-        // Handle infinite scroll jumps (don't let isScrollingRef block this)
-        // If scrolled near the top (first copy), jump to the middle copy
-        if (scrollTop < singleSetHeight * 0.05 && !isScrollingRef.current) {
-            isScrollingRef.current = true
-            scrollElement.scrollTop = scrollTop + singleSetHeight * 2
-            setTimeout(() => { isScrollingRef.current = false }, 100)
-            return
-        }
-        // If scrolled near the bottom (last copy), jump to the middle copy
-        else if (scrollTop > singleSetHeight * 4.95 && !isScrollingRef.current) {
-            isScrollingRef.current = true
-            scrollElement.scrollTop = scrollTop - singleSetHeight * 2
-            setTimeout(() => { isScrollingRef.current = false }, 100)
-            return
-        }
+        // // Handle infinite scroll jumps (don't let isScrollingRef block this)
+        // // If scrolled near the top (first copy), jump to the middle copy
+        // if (scrollTop < singleSetHeight * 0.05 && !isScrollingRef.current) {
+        //     isScrollingRef.current = true
+        //     scrollElement.scrollTop = scrollTop + singleSetHeight * 2
+        //     setTimeout(() => { isScrollingRef.current = false }, 100)
+        //     return
+        // }
+        // // If scrolled near the bottom (last copy), jump to the middle copy
+        // else if (scrollTop > singleSetHeight * 4.95 && !isScrollingRef.current) {
+        //     isScrollingRef.current = true
+        //     scrollElement.scrollTop = scrollTop - singleSetHeight * 2
+        //     setTimeout(() => { isScrollingRef.current = false }, 100)
+        //     return
+        // }
 
         // Debounce the selection update to avoid jittery scrolling
         if (selectionUpdateTimeoutRef.current) {
@@ -304,118 +304,113 @@ const ListViewComponent: React.FC<ListViewProps> = ({ items, onImageClick }) => 
         )
     }
 
+    console.log('selectedItem', selectedItem);
+
     return (
-        <>
-            <div className="flex h-full w-full bg-black">
-                {/* List Section */}
-                <div className={cn(
-                    "relative",
-                    isMobile ? "w-full" : "w-1/2 max-w-1/2"
-                )}>
-                    {/* Top blur fade */}
-                    <div className="absolute top-0 left-0 right-0 h-52 bg-gradient-to-b from-black to-transparent z-10 pointer-events-none" />
+        <div className='relative h-full w-screen overflow-clip'>
+            {/* Top blur fade */}
+            <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-black to-transparent z-10 pointer-events-none" />
 
-                    <ScrollArea
-                        className="h-full p-0 [&_[data-radix-scroll-area-scrollbar]]:hidden [&_[data-radix-scroll-area-viewport]]:scrollbar-none [&_[data-radix-scroll-area-viewport]]:[-ms-overflow-style:none] [&_[data-radix-scroll-area-viewport]]:[-webkit-overflow-scrolling:touch]"
-                        ref={scrollAreaRef}
-                        style={{ scrollBehavior: 'auto' }}
-                        scrollHideDelay={0}
-                    >
-                        <div className="space-y-2 p-1 md:px-16 tracking-[5px]" style={{ scrollBehavior: 'auto' }}>
-                            {infiniteItems.map((item, index) => {
-                                const isSelected = selectedItem?.id === item.id
-                                const originalIndex = index % items.length
-                                const headline = item.title || `Memory ${originalIndex + 1}`
-                                const location = item.metadata?.location || 'Unknown location'
-                                const date = item.metadata?.date
-                                    ? new Date(item.metadata.date).toLocaleDateString('en-US', {
-                                        year: 'numeric',
-                                        month: 'short',
-                                        day: 'numeric'
-                                    })
-                                    : 'Unknown date'
+            <div className={cn('h-full items-center justify-center', isMobile ? "flex flex-col" : "grid grid-cols-2")}>
+                <ScrollArea
+                    className={cn("h-full grow overflow-y-scroll overflow-x-clip max-w-screen p-0 [&_[data-radix-scroll-area-scrollbar]]:hidden [&_[data-radix-scroll-area-viewport]]:scrollbar-none [&_[data-radix-scroll-area-viewport]]:[-ms-overflow-style:none] [&_[data-radix-scroll-area-viewport]]:[-webkit-overflow-scrolling:touch]",
+                        isMobile ? "" : ""
+                    )}
+                    ref={scrollAreaRef}
+                    style={{ scrollBehavior: 'auto' }}
+                    scrollHideDelay={0}
+                >
+                    <div className="space-y-2 py-10 p-1 md:px-16 tracking-[5px] max-h-[50vh]" style={{ scrollBehavior: 'auto' }}>
+                        {infiniteItems.map((item, index) => {
+                            const isSelected = selectedItem?.id === item.id
+                            const originalIndex = index % items.length
+                            const headline = item.title || `Memory ${originalIndex + 1}`
+                            const location = item.metadata?.location || 'Unknown location'
+                            const date = item.metadata?.date
+                                ? new Date(item.metadata.date).toLocaleDateString('en-US', {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric'
+                                })
+                                : 'Unknown date'
 
-                                return (
-                                    <button
-                                        key={`${item.id}-${index}`}
-                                        onClick={() => handleItemClick(item)}
-                                        className={cn(
-                                            "w-full text-left p-4 transition-all duration-200",
-                                            "hover:bg-white/5 active:bg-white/10"
-                                        )}
-                                    >
-                                        <div className="flex items-start gap-4">
+                            return (
+                                <button
+                                    key={`${item.id}-${index}`}
+                                    onClick={() => handleItemClick(item)}
+                                    className={cn(
+                                        "w-full text-left p-4 transition-all duration-200",
+                                        "hover:bg-white/5 active:bg-white/10"
+                                    )}
+                                >
+                                    <div className="flex items-start gap-4">
 
-                                            {/* Content */}
-                                            <div className="flex-1 min-w-0">
-                                                <h3 className={cn(
-                                                    "font-medium text-6xl font-instrument truncate mb-1 transition-colors duration-200",
-                                                    isSelected ? "text-white" : "text-white/40"
-                                                )}>
-                                                    {headline}
-                                                </h3>
-                                            </div>
+                                        {/* Content */}
+                                        <div className="flex-1 min-w-0 max-w-screen">
+                                            <h3 className={cn(
+                                                isMobile ? "text-4xl" : "text-6xl",
+                                                "font-medium font-instrument truncate mb-1 transition-colors duration-200",
+                                                isSelected ? "text-white" : "text-white/40"
+                                            )}>
+                                                {headline}
+                                            </h3>
+                                        </div>
 
-                                            {/* Selection indicator */}
-                                            {/* {isSelected && (
+                                        {/* Selection indicator */}
+                                        {/* {isSelected && (
                                                 <div className="flex-shrink-0">
                                                     <div className="w-2 h-2 rounded-full bg-blue-500" />
                                                 </div>
                                             )} */}
-                                        </div>
-                                    </button>
-                                )
-                            })}
-                        </div>
-                    </ScrollArea>
-
-                    {/* Bottom blur fade */}
-                    <div className="absolute bottom-0 left-0 right-0 h-96 bg-gradient-to-t from-black to-transparent z-10 pointer-events-none" />
+                                    </div>
+                                </button>
+                            )
+                        })}
+                    </div>
+                    {isMobile && <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-black to-transparent z-10 pointer-events-none" />}
+                </ScrollArea>
+                <div className={cn('z-50 relative flex items-start justify-center', isMobile && "h-1/2")}>
+                    {selectedItem && <StampPreview
+                        className={cn("", isMobile ? 'scale-40 -translate-y-1/4' : "scale-90 -translate-y-10")}
+                        headline={selectedItem.title || 'Untitled Memory'}
+                        location={selectedItem.metadata?.location || 'Unknown location'}
+                        handle="@memories"
+                        date={selectedItem.metadata?.date
+                            ? new Date(selectedItem.metadata.date).toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric'
+                            })
+                            : new Date().toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric'
+                            })
+                        }
+                        imageSrc={selectedItem.imageUrl}
+                        layout={isMobile ? "horizontal" : "vertical"}
+                    />}
                 </div>
+            </div>
 
-                {/* Preview Section - Desktop Only */}
-                {!isMobile && selectedItem && (
+            {/* Bottom blur fade */}
+            {!isMobile && <div className="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-black to-transparent z-10 pointer-events-none" />}
+
+            {/* Preview Section */}
+            {/* {selectedItem && (
                     <div className="flex-1 flex items-center justify-center p-8 relative">
                         <div
                             className="max-w-2xl w-full cursor-pointer transition-transform hover:scale-[1.02]"
                             ref={desktopStampRef}
                             onClick={handleStampPreviewClick}
                         >
-                            <StampPreview
-                                className='relative bottom-5'
-                                headline={selectedItem.title || 'Untitled Memory'}
-                                location={selectedItem.metadata?.location || 'Unknown location'}
-                                handle="@memories"
-                                date={selectedItem.metadata?.date
-                                    ? new Date(selectedItem.metadata.date).toLocaleDateString('en-US', {
-                                        year: 'numeric',
-                                        month: 'short',
-                                        day: 'numeric'
-                                    })
-                                    : new Date().toLocaleDateString('en-US', {
-                                        year: 'numeric',
-                                        month: 'short',
-                                        day: 'numeric'
-                                    })
-                                }
-                                imageSrc={selectedItem.imageUrl}
-                                layout="vertical"
-                            />
-                        </div>
+                           
+                        </div> */}
 
-                        {/* Share button - Desktop */}
-                        {/* <Button
-                            onClick={handleShare}
-                            disabled={isCapturing}
-                            size="lg"
-                            className="absolute h-12 bottom-10 -left-5 bg-[#000DFF] hover:bg-[#000DFF]/90 text-white border border-[#2C2C2C] px-6 py-3 text-base font-medium flex items-center justify-center gap-2 disabled:opacity-50 transition-all shadow-lg z-20"
-                        >
-                            <Share2 className="w-4 h-4" />
-                            {isCapturing ? 'Capturing...' : 'Share'}
-                        </Button> */}
-                    </div>
-                )}
-            </div>
+            {/* Share button - Desktop */}
+            {/*  */}
+            {/* </div> */}
+            {/* )} */}
 
             {/* Mobile Preview Modal */}
             {isMobile && selectedItem && (
@@ -493,6 +488,16 @@ const ListViewComponent: React.FC<ListViewProps> = ({ items, onImageClick }) => 
                 </div>
             )}
 
+            <Button
+                onClick={handleShare}
+                disabled={isCapturing}
+                size="lg"
+                className="absolute h-12 bottom-10.5 z-50 left-7 bg-[#000DFF] hover:bg-[#000DFF]/90 text-white border border-[#2C2C2C] px-6 py-3 text-base font-medium flex items-center justify-center gap-2 disabled:opacity-50 transition-all shadow-lg"
+            >
+                <Share2 className="w-4 h-4" />
+                {isCapturing ? 'Capturing...' : 'Share'}
+            </Button>
+
             {/* Copy & Share Popup */}
             <CopySharePopup
                 shareUrl={`${window.location.origin}/#/view/${selectedItem?.id.split("-tile")[0]}`}
@@ -502,7 +507,7 @@ const ListViewComponent: React.FC<ListViewProps> = ({ items, onImageClick }) => 
                 tweetText={getTweetText()}
                 onTwitterOpen={handleSharePopupClose}
             />
-        </>
+        </div>
     )
 }
 

@@ -501,6 +501,8 @@ export const InfiniteCanvas = forwardRef<InfiniteCanvasRef, InfiniteCanvasProps>
             onTouchEnd={handleTouchEnd}
             style={{ cursor: isDragging || isTouching ? 'grabbing' : 'grab' }}
         >
+
+            <div className="absolute top-0 left-0 right-0 h-60 bg-gradient-to-b from-black to-transparent z-10 pointer-events-none" />
             {/* Loading overlay */}
             {isPending && (
                 <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
@@ -527,6 +529,8 @@ export const InfiniteCanvas = forwardRef<InfiniteCanvasRef, InfiniteCanvasProps>
                     />
                 ))}
             </div>
+
+            <div className="absolute bottom-0 left-0 right-0 h-96 bg-gradient-to-t from-black to-transparent z-10 pointer-events-none" />
 
             {/* Controls overlay */}
             {process.env.NODE_ENV === 'development' && <div className="absolute top-28 left-4 bg-black/20 backdrop-blur-sm rounded-lg p-3 text-white text-sm font-mono">
