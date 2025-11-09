@@ -76,13 +76,13 @@ const CardView: React.FC<CardViewProps> = ({ items, onImageClick }) => {
                         return (
                             <CarouselItem
                                 key={item.id}
-                                className="pl-4 md:pl-8 basis-full"
+                                className="pl-4 md:pl-8 basis-full md:basis-1/5"
                             >
                                 <div className="flex items-center justify-center h-full py-12">
                                     <div
-                                        className={`cursor-pointer transition-all relative duration-500 ease-out ${isCenterItem
+                                        className={`cursor-pointer transition-all relative duration-500 ease-out max-h-[70vh] ${isCenterItem
                                             ? 'scale-100 z-50 opacity-100'
-                                            : 'scale-75 md:scale-80 z-10 opacity-60'
+                                            : 'scale-[0.6] md:scale-[0.65] z-10 opacity-50'
                                             } hover:opacity-100`}
                                         onClick={() => onImageClick(item)}
                                     >
@@ -93,7 +93,7 @@ const CardView: React.FC<CardViewProps> = ({ items, onImageClick }) => {
                                             date={formatDate(item.metadata?.date)}
                                             imageSrc={item.imageUrl}
                                             layout="vertical"
-                                            className="w-full max-w-[80vw] md:max-w-full h-auto drop-shadow-2xl"
+                                            className="w-full max-w-[80vw] md:max-w-full h-auto max-h-full object-contain drop-shadow-2xl"
                                         />
                                     </div>
                                 </div>

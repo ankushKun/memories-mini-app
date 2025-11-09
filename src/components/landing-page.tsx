@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router'
-import { useActiveAddress, useApi, useConnection } from '@arweave-wallet-kit/react'
 import { Upload } from 'lucide-react'
 import { Button } from './ui/button'
 import UploadModal, { type UploadData } from './upload-modal'
@@ -9,6 +8,7 @@ import { ArconnectSigner, TurboFactory } from '@ardrive/turbo-sdk/web';
 import permanentImage from "@/assets/permanent.png"
 import { cn } from '@/lib/utils'
 import StampPreview from './stamp-preview'
+import { QuickWallet } from 'quick-wallet'
 
 // GraphQL query for fetching Arweave transactions
 const MEMORIES_QUERY = `query GetMemories($after: String) {
@@ -106,30 +106,9 @@ const LandingPage: React.FC = () => {
     const [isLoadingMemories, setIsLoadingMemories] = useState(true)
     const [prevConnected, setPrevConnected] = useState(null)
     const [startTime, setStartTime] = useState(Date.now())
-    const api = useApi()
+    const api = QuickWallet
     const navigate = useNavigate()
-    const { connected, connect } = useConnection()
-    const address = useActiveAddress()
-
-    useEffect(() => {
-        const now = Date.now()
-        const diffMs = (now - startTime)
-        if (diffMs < 1000) {
-            return
-        }
-
-        if (prevConnected === null) {
-            // First render - just initialize without showing modal
-            setPrevConnected(connected)
-        } else if (prevConnected === false && connected === true) {
-            // Transition from not connected to connected - show modal
-            setIsUploadModalOpen(true)
-            setPrevConnected(connected)
-        } else if (prevConnected !== connected) {
-            // Any other state change - just update prevConnected
-            setPrevConnected(connected)
-        }
-    }, [connected])
+    const address = QuickWallet.getActiveAddress()
 
     async function handleImageUpload(file: File, uploadData: UploadData): Promise<string> {
         if (!api) throw new Error('Wallet not initialized not found');
@@ -205,7 +184,6 @@ const LandingPage: React.FC = () => {
     }
 
     const handleModalUpload = async (uploadData: UploadData) => {
-        if (!connected) return
 
         setIsUploading(true)
 
@@ -243,11 +221,7 @@ const LandingPage: React.FC = () => {
     }
 
     const handleUploadClick = () => {
-        if (connected) {
-            setIsUploadModalOpen(true)
-        } else {
-            connect()
-        }
+        setIsUploadModalOpen(true)
     }
 
     const handleExploreGallery = useCallback(() => {

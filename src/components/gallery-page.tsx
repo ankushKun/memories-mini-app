@@ -9,11 +9,11 @@ import { useIsMobile } from '../hooks/use-mobile'
 import { Button } from './ui/button'
 import { Card, CardContent } from './ui/card'
 import { Home, Plus, User, RefreshCw, Upload, LayoutGrid, List, LayoutList } from 'lucide-react'
-import { useActiveAddress, useConnection, useProfileModal, useApi } from '@arweave-wallet-kit/react'
 import { MemoriesLogo } from './landing-page'
 import UploadModal, { type UploadData } from './upload-modal'
 import imageCompression from 'browser-image-compression'
 import { ArconnectSigner, TurboFactory } from '@ardrive/turbo-sdk/web'
+import { QuickWallet } from 'quick-wallet'
 
 // GraphQL query for fetching Arweave transactions
 const MEMORIES_QUERY = `query GetMemories($after: String) {
@@ -149,41 +149,39 @@ const GalleryPage: React.FC = () => {
     const canvasRef = useRef<InfiniteCanvasRef>(null)
     const isMobile = useIsMobile()
     const navigate = useNavigate()
-    const address = useActiveAddress()
-    const { connected, connect, disconnect } = useConnection()
-    const { setOpen } = useProfileModal()
-    const api = useApi()
+    const address = QuickWallet.getActiveAddress()
+    const api = QuickWallet
 
-    useEffect(() => {
-        const now = Date.now()
-        const diffMs = (now - startTime)
-        if (diffMs < 1000) {
-            return
-        }
+    // useEffect(() => {
+    //     const now = Date.now()
+    //     const diffMs = (now - startTime)
+    //     if (diffMs < 1000) {
+    //         return
+    //     }
 
-        if (prevConnected === null) {
-            // First render - just initialize without showing modal
-            setPrevConnected(connected)
-        } else if (prevConnected === false && connected === true) {
-            // Transition from not connected to connected - show modal
-            setIsUploadModalOpen(true)
-            setPrevConnected(connected)
-        } else if (prevConnected !== connected) {
-            // Any other state change - just update prevConnected
-            setPrevConnected(connected)
-        }
-    }, [connected])
+    // if (prevConnected === null) {
+    //     // First render - just initialize without showing modal
+    //     setPrevConnected(connected)
+    // } else if (prevConnected === false && connected === true) {
+    //     // Transition from not connected to connected - show modal
+    //     setIsUploadModalOpen(true)
+    //     setPrevConnected(connected)
+    // } else if (prevConnected !== connected) {
+    //     // Any other state change - just update prevConnected
+    //     setPrevConnected(connected)
+    // }
+    // }, [connected])
 
-    useEffect(() => {
-        if (!api) return
-        if (api.id == "wauth-twitter") {
-            const username = api.authData?.username
-            if (!username) {
-                console.log("No username found, disconnecting")
-                disconnect()
-            }
-        }
-    }, [api, connected, address])
+    // useEffect(() => {
+    //     if (!api) return
+    //     if (api.id == "wauth-twitter") {
+    //         const username = api.authData?.username
+    //         if (!username) {
+    //             console.log("No username found, disconnecting")
+    //             disconnect()
+    //         }
+    //     }
+    // }, [api, connected, address])
 
     // Load Arweave memories
     const loadArweaveMemories = useCallback(async (cursor?: string, append = false) => {
@@ -288,18 +286,62 @@ const GalleryPage: React.FC = () => {
         // Calculate grid dimensions based on number of validated images
         if (validImageCount === 0) return []
 
+        // Convert validated Arweave images to array
+        const arweaveArray = Array.from(arweaveImageMap.entries())
+
+        // Calculate optimal items per row to fill the grid completely
         const itemsPerRow = Math.ceil(Math.sqrt(validImageCount))
 
-        // Convert only validated Arweave images to CanvasItems with proper grid positioning
-        const arweaveArray = Array.from(arweaveImageMap.entries())
-        return arweaveArray.map(([transactionId, arweaveData], index) => {
+        // Calculate how many items we need to fill the last row
+        const remainder = validImageCount % itemsPerRow
+        const itemsNeeded = remainder === 0 ? 0 : itemsPerRow - remainder
+
+        // Duplicate items to fill empty spaces in the grid
+        const itemsToRender = [...arweaveArray]
+        if (itemsNeeded > 0) {
+            // Duplicate items to fill the last row, avoiding adjacent duplicates
+            for (let i = 0; i < itemsNeeded; i++) {
+                // Calculate position where this item will be placed
+                const targetIndex = itemsToRender.length
+                const colInRow = targetIndex % itemsPerRow
+
+                // Find an item to duplicate that won't be adjacent
+                let sourceIndex = i % validImageCount
+
+                // Avoid left adjacency (if not first in row)
+                if (colInRow > 0) {
+                    const leftNeighborId = itemsToRender[targetIndex - 1][0]
+                    // Try to find a different item that's not the left neighbor
+                    let attempts = 0
+                    while (arweaveArray[sourceIndex][0] === leftNeighborId && attempts < validImageCount) {
+                        sourceIndex = (sourceIndex + 1) % validImageCount
+                        attempts++
+                    }
+                }
+
+                // Avoid top adjacency (if there's a row above)
+                const topNeighborIndex = targetIndex - itemsPerRow
+                if (topNeighborIndex >= 0 && topNeighborIndex < itemsToRender.length) {
+                    const topNeighborId = itemsToRender[topNeighborIndex][0]
+                    let attempts = 0
+                    while (arweaveArray[sourceIndex][0] === topNeighborId && attempts < validImageCount) {
+                        sourceIndex = (sourceIndex + 1) % validImageCount
+                        attempts++
+                    }
+                }
+
+                itemsToRender.push(arweaveArray[sourceIndex])
+            }
+        }
+
+        return itemsToRender.map(([transactionId, arweaveData], index) => {
             const row = Math.floor(index / itemsPerRow)
             const col = index % itemsPerRow
             const x = col * (size + spacing)
             const y = row * (size + spacing)
 
             return {
-                id: transactionId,
+                id: `${transactionId}-${index}`, // Add index to ensure unique IDs for duplicates
                 x,
                 y,
                 width: size,
@@ -405,9 +447,7 @@ const GalleryPage: React.FC = () => {
         console.log(`originalFile size ${file.size / 1024 / 1024} MB`);
 
         try {
-            if (!connected) {
-                await connect()
-            }
+            QuickWallet.connect()
             let finalFile = file;
 
             // Only compress if file is larger than 100KB
@@ -438,7 +478,6 @@ const GalleryPage: React.FC = () => {
 
     // Handle modal upload
     const handleModalUpload = async (uploadData: UploadData) => {
-        if (!connected) return
 
         setIsUploading(true)
 
@@ -475,13 +514,9 @@ const GalleryPage: React.FC = () => {
     }
 
     // Handle upload button click
-    const handleUploadClick = useCallback(() => {
-        if (connected) {
-            setIsUploadModalOpen(true)
-        } else {
-            connect()
-        }
-    }, [connected, connect])
+    const handleUploadClick = () => {
+        setIsUploadModalOpen(true)
+    }
 
     return (
         <div className="relative w-full h-screen bg-black">

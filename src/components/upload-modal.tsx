@@ -4,7 +4,6 @@ import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { useIsMobile } from '../hooks/use-mobile'
 import { MemoriesLogo } from './landing-page'
-import { useActiveAddress, useApi, useConnection, useProfileModal } from '@arweave-wallet-kit/react'
 import StampPreview from './stamp-preview'
 import { cn } from '@/lib/utils'
 import postcardV from '@/assets/postcard-v.svg'
@@ -12,6 +11,7 @@ import postcardH from '@/assets/postcard-h.svg'
 import { Toggle } from './ui/toggle'
 import { Switch } from './ui/switch'
 import { Checkbox } from './ui/checkbox'
+import { QuickWallet } from 'quick-wallet'
 
 interface UploadModalProps {
     isOpen: boolean
@@ -42,25 +42,11 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
     const isMobile = useIsMobile()
     // Force vertical orientation on mobile
     const [orientation, setOrientation] = useState<'horizontal' | 'vertical'>('vertical')
-    const address = useActiveAddress()
-    const api = useApi()
-    const { connected, disconnect, connect } = useConnection()
-    const { setOpen } = useProfileModal()
-
-    useEffect(() => {
-        if (!connected) {
-            return
-        }
-        if (!api) return
-        if (api.id == "wauth-twitter") {
-            const username = api.authData?.username
-            if (!username) {
-                console.log("No username found, disconnecting")
-                disconnect()
-                setOpen(false)
-            }
-        }
-    }, [api, connected, address])
+    // const address = useActiveAddress()
+    // const api = useApi()
+    // const { setOpen } = useProfileModal()
+    const address = QuickWallet.getActiveAddress()
+    const api = QuickWallet
 
     // Reset uploading state, mobile step, and error when modal closes
     useEffect(() => {
@@ -77,13 +63,6 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
             setOrientation('vertical')
         }
     }, [isMobile])
-
-    // Autofill handle with Twitter username if connected via WAuth Twitter
-    useEffect(() => {
-        if (isOpen && api?.id === 'wauth-twitter' && api.authData?.username) {
-            setHandle(`@${api.authData.username}`)
-        }
-    }, [isOpen, api])
 
     const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0]
@@ -211,7 +190,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
                     )}
                     <Button
                         onClick={handleSubmit}
-                        disabled={isUploading || !connected}
+                        disabled={isUploading}
                         className='w-full bg-white text-black rounded-lg disabled:opacity-50 disabled:cursor-not-allowed text-base p-4 font-medium hover:bg-white/90'
                     >
                         {isUploading ? 'Uploading...' : 'Upload Memory'}
@@ -364,7 +343,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
                             )}
                             <Button
                                 type="submit"
-                                disabled={!selectedFile || !title.trim() || !handle.trim() || !location.trim() || isUploading || !connected}
+                                disabled={!selectedFile || !title.trim() || !handle.trim() || !location.trim() || isUploading}
                                 className='w-full bg-[#2C2C2C] font-light text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed text-xl p-6'
                             >
                                 {isUploading ? 'Uploading...' : 'Upload'}
@@ -375,7 +354,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
                 </form>
 
                 {/* connection info - show on both mobile and desktop in step 1 */}
-                <div className={cn(
+                {/* <div className={cn(
                     'flex items-center justify-between bg-white/50 backdrop-blur-sm border border-gray-200 rounded-2xl transition-all hover:bg-white/80',
                     isMobile ? 'p-3' : 'p-4'
                 )}>
@@ -412,7 +391,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
                             <ArrowRight className='w-5 h-5 text-gray-600 group-hover:text-gray-900 transition-all group-hover:translate-x-0.5' />
                         </Button>
                     )}
-                </div>
+                </div> */}
             </div>
 
             {/* Preview section - desktop only */}
