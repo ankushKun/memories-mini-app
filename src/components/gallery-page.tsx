@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback, useRef, useTransition, useEffect } from 'react'
-import { useNavigate } from 'react-router'
+import { useNavigate, useSearchParams } from 'react-router'
 import InfiniteCanvas, { type CanvasItem, type InfiniteCanvasRef } from './infinite-canvas'
 import ImageModal from './image-modal'
 import ListViewComponent from './list-view'
@@ -131,6 +131,8 @@ const isValidImageUrl = async (url: string): Promise<boolean> => {
 
 
 const GalleryPage: React.FC = () => {
+    const [searchParams] = useSearchParams()
+    const highlightId = searchParams.get('highlight')
     const [arweaveMemories, setArweaveMemories] = useState<ArweaveTransaction[]>([])
     const [validatedImages, setValidatedImages] = useState<Set<string>>(new Set())
     const [isLoadingArweave, setIsLoadingArweave] = useState(true)
@@ -146,6 +148,7 @@ const GalleryPage: React.FC = () => {
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
     const [isUploading, setIsUploading] = useState(false)
     const [prevConnected, setPrevConnected] = useState(null)
+    const [localStorageMemory, setLocalStorageMemory] = useState<any>(null)
     const canvasRef = useRef<InfiniteCanvasRef>(null)
     const isMobile = useIsMobile()
     const navigate = useNavigate()
@@ -182,6 +185,35 @@ const GalleryPage: React.FC = () => {
     //         }
     //     }
     // }, [api, connected, address])
+
+    // Load localStorage memory if highlighted
+    useEffect(() => {
+        if (highlightId) {
+            const storedMemory = localStorage.getItem('lastUploadedMemory')
+            if (storedMemory) {
+                try {
+                    const parsedMemory = JSON.parse(storedMemory)
+                    if (parsedMemory.id === highlightId) {
+                        setLocalStorageMemory(parsedMemory)
+                        // Add to arweaveImageMap
+                        arweaveImageMap.set(parsedMemory.id, {
+                            url: parsedMemory.imageUrl,
+                            title: parsedMemory.title,
+                            location: parsedMemory.location
+                        })
+                        // Mark as validated
+                        setValidatedImages(prev => {
+                            const newSet = new Set(prev)
+                            newSet.add(parsedMemory.id)
+                            return newSet
+                        })
+                    }
+                } catch (err) {
+                    console.error('Failed to parse localStorage memory:', err)
+                }
+            }
+        }
+    }, [highlightId])
 
     // Load Arweave memories
     const loadArweaveMemories = useCallback(async (cursor?: string, append = false) => {
@@ -363,6 +395,16 @@ const GalleryPage: React.FC = () => {
     useEffect(() => {
         loadArweaveMemories()
     }, [loadArweaveMemories])
+
+    // Center on highlighted item when items are loaded
+    useEffect(() => {
+        if (highlightId && items.length > 0 && canvasRef.current && !isLoadingArweave) {
+            // Wait a bit for the canvas to initialize
+            setTimeout(() => {
+                canvasRef.current?.centerOnItem(highlightId)
+            }, 500)
+        }
+    }, [highlightId, items.length, isLoadingArweave])
 
     // Cleanup effect for memory management
     useEffect(() => {

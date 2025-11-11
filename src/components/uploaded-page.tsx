@@ -95,6 +95,18 @@ const UploadedPage: React.FC = () => {
                 imageUrl: `https://arweave.net/${transaction.id}`
             }
 
+            // Save to localStorage for gallery to use
+            const uploadedMemory = {
+                id: transaction.id,
+                title: tags.Title || 'Untitled Memory',
+                location: tags.Location || '',
+                handle: tags.Handle || '',
+                imageUrl: `https://arweave.net/${transaction.id}`,
+                date: new Date().toISOString(),
+                txid: transaction.id
+            }
+            localStorage.setItem('lastUploadedMemory', JSON.stringify(uploadedMemory))
+
             setMemoryData(memory)
         } catch (err) {
             console.error('Error loading memory:', err)
@@ -172,7 +184,11 @@ const UploadedPage: React.FC = () => {
     }
 
     const handleGallery = () => {
-        navigate('/gallery')
+        if (memoryData?.id) {
+            navigate(`/gallery?highlight=${memoryData.id}`)
+        } else {
+            navigate('/gallery')
+        }
     }
 
     const handleTelegramShare = () => {

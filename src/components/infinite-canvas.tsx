@@ -30,6 +30,7 @@ interface InfiniteCanvasProps {
 export interface InfiniteCanvasRef {
     resetView: () => void
     resetDragState: () => void
+    centerOnItem: (itemId: string) => void
 }
 
 // Memoized canvas item component to prevent unnecessary re-renders
@@ -207,8 +208,34 @@ export const InfiniteCanvas = forwardRef<InfiniteCanvasRef, InfiniteCanvasProps>
             setIsDragging(false)
             setIsTouching(false)
             setLastTouchDistance(0)
+        },
+        centerOnItem: (itemId: string) => {
+            if (!containerRef.current) return
+
+            // Find the item by ID (remove index suffix if present)
+            const item = items.find(i => i.id === itemId || i.id.startsWith(itemId + '-'))
+            if (!item) return
+
+            const container = containerRef.current
+            const rect = container.getBoundingClientRect()
+
+            // Calculate viewport center
+            const viewportCenterX = rect.width / 2
+            const viewportCenterY = rect.height / 2
+
+            // Calculate item center
+            const itemCenterX = item.x + item.width / 2
+            const itemCenterY = item.y + item.height / 2
+
+            // Set offset to center the item
+            const centeredOffset = {
+                x: viewportCenterX - itemCenterX,
+                y: viewportCenterY - itemCenterY
+            }
+
+            setOffset(centeredOffset)
         }
-    }), [])
+    }), [items])
 
     // Handle mouse down for dragging
     const handleMouseDown = useCallback((e: React.MouseEvent) => {
