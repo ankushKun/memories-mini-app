@@ -66,7 +66,24 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
 
     const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0]
-        if (file && file.type.startsWith('image/')) {
+        if (!file) return
+
+        // Check if it's a HEIC/HEIF file (by extension or MIME type)
+        const isHeic = file.type === 'image/heic' ||
+            file.type === 'image/heif' ||
+            file.name.toLowerCase().endsWith('.heic') ||
+            file.name.toLowerCase().endsWith('.heif')
+
+        if (isHeic) {
+            alert('HEIC/HEIF images are not supported. Please convert your image to JPG or PNG first.')
+            // Reset the file input
+            if (fileInputRef.current) {
+                fileInputRef.current.value = ''
+            }
+            return
+        }
+
+        if (file.type.startsWith('image/')) {
             setSelectedFile(file)
             const url = URL.createObjectURL(file)
             setPreviewUrl(url)
@@ -87,7 +104,20 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
         event.preventDefault()
         setIsDragging(false)
         const file = event.dataTransfer.files[0]
-        if (file && file.type.startsWith('image/')) {
+        if (!file) return
+
+        // Check if it's a HEIC/HEIF file (by extension or MIME type)
+        const isHeic = file.type === 'image/heic' ||
+            file.type === 'image/heif' ||
+            file.name.toLowerCase().endsWith('.heic') ||
+            file.name.toLowerCase().endsWith('.heif')
+
+        if (isHeic) {
+            alert('HEIC/HEIF images are not supported. Please convert your image to JPG or PNG first.')
+            return
+        }
+
+        if (file.type.startsWith('image/')) {
             setSelectedFile(file)
             const url = URL.createObjectURL(file)
             setPreviewUrl(url)
