@@ -307,7 +307,7 @@ const LandingPage: React.FC = () => {
     }, [fetchRandomMemories])
 
     return (
-        <div className="min-h-screen max-h-screen bg-black relative overflow">
+        <div className="min-h-screen max-h-screen bg-black relative overflow-hidden">
             {/* Header */}
             <div className="relative z-10 p-6 md:p-8">
                 <MemoriesLogo />
@@ -316,9 +316,9 @@ const LandingPage: React.FC = () => {
             {/* Main Content */}
             <div className="relative z-10 flex-1 px-6 md:px-16 py-10 md:py-0 md:-top-16">
                 {/* Welcome Section - Always Visible */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center min-h-[70vh]">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center min-h-[70vh] h-screen">
                     {/* Left Content */}
-                    <div className="space-y-8">
+                    <div className="space-y-8 self-center">
                         <div className="space-y-6">
                             <h2 className="text-white font-instrument text-4xl md:text-8xl md:leading-[90px]">
                                 {/* Your memories are rented, let's change that! */}
@@ -358,7 +358,7 @@ const LandingPage: React.FC = () => {
                     <div className="flex justify-center items-center">
                         <div className="relative w-full max-w-lg left-4 md:left-0">
                             {isLoadingMemories ? (
-                                <div className="flex items-center justify-center h-[400px]">
+                                <div className="flex items-center justify-center">
                                     <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                                 </div>
                             ) : randomMemories.length >= 2 ? (
