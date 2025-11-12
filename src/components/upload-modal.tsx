@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react'
-import { ArrowRight, Upload, Image as ImageIcon, ArrowLeft, Check } from 'lucide-react'
+import React, { useState, useRef, useEffect, useMemo } from 'react'
+import { ArrowRight, Upload, Image as ImageIcon, ArrowLeft, Check, Loader2 } from 'lucide-react'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { useIsMobile } from '../hooks/use-mobile'
@@ -12,6 +12,8 @@ import { Toggle } from './ui/toggle'
 import { Switch } from './ui/switch'
 import { Checkbox } from './ui/checkbox'
 import { QuickWallet } from 'quick-wallet'
+import convertHEIC from 'heic-convert/browser'
+import ExifReader from 'exifreader'
 
 interface UploadModalProps {
     isOpen: boolean
@@ -25,6 +27,7 @@ export interface UploadData {
     location: string
     handle: string
     isPublic: boolean
+    datetime?: string
 }
 
 const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) => {
@@ -33,7 +36,9 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
     const [title, setTitle] = useState('')
     const [location, setLocation] = useState('')
     const [handle, setHandle] = useState('')
+    const [datetime, setDatetime] = useState('')
     const [isPublic, setIsPublic] = useState(true)
+    const [isProcessing, setIsProcessing] = useState(false)
     const [isUploading, setIsUploading] = useState(false)
     const [isDragging, setIsDragging] = useState(false)
     const [uploadError, setUploadError] = useState<string | null>(null)
@@ -47,6 +52,76 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
     // const { setOpen } = useProfileModal()
     const address = QuickWallet.getActiveAddress()
     const api = QuickWallet
+
+    const handleNewFile = useMemo(() => {
+        return async (file: File) => {
+            if (!file.type.startsWith('image/')) return;
+
+            // reset previous metadata
+            setDatetime('');
+            setLocation('');
+
+            setIsProcessing(true);
+
+            try {
+                // extract Exif metadata
+                const tags = await ExifReader.load(file);
+                const imageDate = tags['DateTimeOriginal']?.description;
+                const imageLongitude = tags['GPSLongitude']?.description;
+                const imageLatitude = tags['GPSLatitude']?.description;
+
+                // set datetime if available
+                if (imageDate) {
+                    // the datetime is provided in format "YYYY:MM:DD HH:MM:SS", convert to "YYYY-MM-DD HH:MM:SS"
+                    const formattedDate = imageDate.replace(/^(\d{4}):(\d{2}):(\d{2})/, '$1-$2-$3');
+                    setDatetime(formattedDate);
+                }
+
+                // reverse geocode to get location name if GPS data is available
+                if (imageLongitude && imageLatitude) {
+                    const url = `https://nominatim.openstreetmap.org/reverse?lat=${imageLatitude}&lon=${imageLongitude}&format=json`;
+                    const response = await fetch(url);
+                    const data = await response.json();
+                    if (data && data.name) {
+                        setLocation(data.name);
+                    }
+                }
+            } catch (error) {
+                console.error('Error reading Exif data or reverse geocoding:', error);
+            }
+            
+
+            // Check if it's a HEIC/HEIF file (by extension or MIME type)
+            const isHeic = file.type === 'image/heic' ||
+                file.type === 'image/heif' ||
+                file.name.toLowerCase().endsWith('.heic') ||
+                file.name.toLowerCase().endsWith('.heif')
+
+            if (isHeic) {
+                try {
+                    // Convert HEIC to JPEG
+                    const buffer = await file.arrayBuffer()
+                    const output = await convertHEIC({
+                        buffer: new Uint8Array(buffer),
+                        format: 'JPEG',
+                        quality: 1,
+                    })
+                    const blob = new Blob([output], { type: 'image/jpeg' })
+                    file = new File([blob], file.name.replace(/\.(heic|heif)$/i, '.jpg'), { type: 'image/jpeg' })
+                } catch (error) {
+                    console.error('Error converting HEIC image:', error)
+                    alert('Failed to process HEIC image. Please try a different image format.')
+                    setIsProcessing(false)
+                    return
+                }
+            }
+
+            setIsProcessing(false)
+            setSelectedFile(file)
+            const url = URL.createObjectURL(file)
+            setPreviewUrl(url)
+        }
+    }, [])
 
     // Reset uploading state, mobile step, and error when modal closes
     useEffect(() => {
@@ -67,27 +142,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
     const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0]
         if (!file) return
-
-        // Check if it's a HEIC/HEIF file (by extension or MIME type)
-        const isHeic = file.type === 'image/heic' ||
-            file.type === 'image/heif' ||
-            file.name.toLowerCase().endsWith('.heic') ||
-            file.name.toLowerCase().endsWith('.heif')
-
-        if (isHeic) {
-            alert('HEIC/HEIF images are not supported. Please convert your image to JPG or PNG first.')
-            // Reset the file input
-            if (fileInputRef.current) {
-                fileInputRef.current.value = ''
-            }
-            return
-        }
-
-        if (file.type.startsWith('image/')) {
-            setSelectedFile(file)
-            const url = URL.createObjectURL(file)
-            setPreviewUrl(url)
-        }
+        handleNewFile(file)
     }
 
     const handleDragOver = (event: React.DragEvent) => {
@@ -105,23 +160,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
         setIsDragging(false)
         const file = event.dataTransfer.files[0]
         if (!file) return
-
-        // Check if it's a HEIC/HEIF file (by extension or MIME type)
-        const isHeic = file.type === 'image/heic' ||
-            file.type === 'image/heif' ||
-            file.name.toLowerCase().endsWith('.heic') ||
-            file.name.toLowerCase().endsWith('.heif')
-
-        if (isHeic) {
-            alert('HEIC/HEIF images are not supported. Please convert your image to JPG or PNG first.')
-            return
-        }
-
-        if (file.type.startsWith('image/')) {
-            setSelectedFile(file)
-            const url = URL.createObjectURL(file)
-            setPreviewUrl(url)
-        }
+        handleNewFile(file)
     }
 
     const handleSubmit = async (event: React.FormEvent) => {
@@ -156,6 +195,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
         setTitle('')
         setLocation('')
         setHandle('')
+        setDatetime('')
         setIsUploading(false)
         setMobileStep(1)
         setUploadError(null)
@@ -187,7 +227,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
     if (isMobile && mobileStep === 2) {
         return (
             <div
-                className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex flex-col items-center justify-center p-4 gap-4 animate-in fade-in duration-300"
+                className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex flex-col items-center p-4 gap-4 overflow-y-auto animate-in fade-in duration-300"
                 onClick={handleBackdropClick}
             >
                 {/* Back button */}
@@ -209,6 +249,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
                     date={new Date().toLocaleDateString()}
                     imageSrc={previewUrl}
                     layout='vertical'
+                    className='max-h-[80vh]'
                 />
 
                 {/* Upload button */}
@@ -220,7 +261,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
                     )}
                     <Button
                         onClick={handleSubmit}
-                        disabled={isUploading}
+                        disabled={isUploading || isProcessing}
                         className='w-full bg-white text-black rounded-lg disabled:opacity-50 disabled:cursor-not-allowed text-base p-4 font-medium hover:bg-white/90'
                     >
                         {isUploading ? 'Uploading...' : 'Upload Memory'}
@@ -234,8 +275,8 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
     return (
         <div
             className={cn(
-                "fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center animate-in fade-in duration-300",
-                isMobile ? "p-4 flex-col overflow-y-auto" : "p-8 gap-20"
+                "fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center animate-in fade-in duration-300",
+                isMobile ? "p-4 flex-col overflow-y-auto" : "justify-center p-8 gap-20"
             )}
             onClick={handleBackdropClick}
         >
@@ -278,6 +319,24 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
                             disabled={isUploading}
                         />
                     </div>
+                    { 
+                        datetime ?
+                        (
+                            <div className='flex flex-col gap-2'>
+                                <div className={cn('font-extralight font-instrument', isMobile ? 'text-xl' : 'text-3xl')}>
+                                    Date Time <span className='text-red-500'>*</span>
+                                </div>
+                                <Input
+                                    placeholder='YYYY-MM-DD HH:MM:SS'
+                                    className={cn('w-full border border-black/20 rounded-lg', isMobile ? 'p-3 text-sm' : 'p-5')}
+                                    value={datetime}
+                                    onChange={(e) => setDatetime(e.target.value)}
+                                    required
+                                    disabled={isUploading}
+                                />
+                            </div>
+                        )
+                        : null }
                     <div className='flex flex-col gap-2'>
                         <div className={cn('font-extralight font-instrument', isMobile ? 'text-xl' : 'text-3xl')}>
                             Location <span className='text-red-500'>*</span>
@@ -308,12 +367,13 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
                                     : 'cursor-pointer',
                                 isDragging && !isUploading
                                     ? 'border-purple-500 bg-purple-50'
-                                    : 'border-black/20 hover:border-black/40 hover:bg-gray-50'
+                                    : 'border-black/20 hover:border-black/40 hover:bg-gray-50',
+                                isProcessing && 'cursor-not-allowed opacity-75'
                             )}
-                            onDragOver={!isUploading ? handleDragOver : undefined}
-                            onDragLeave={!isUploading ? handleDragLeave : undefined}
-                            onDrop={!isUploading ? handleDrop : undefined}
-                            onClick={!isUploading ? () => fileInputRef.current?.click() : undefined}
+                            onDragOver={!isUploading && !isProcessing ? handleDragOver : undefined}
+                            onDragLeave={!isUploading && !isProcessing ? handleDragLeave : undefined}
+                            onDrop={!isUploading && !isProcessing ? handleDrop : undefined}
+                            onClick={!isUploading && !isProcessing ? () => fileInputRef.current?.click() : undefined}
                         >
                             <input
                                 ref={fileInputRef}
@@ -321,9 +381,21 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
                                 accept="image/*"
                                 onChange={handleFileSelect}
                                 className="hidden"
+                                disabled={isProcessing}
                             />
                             <div className='flex flex-col items-center justify-center h-full gap-2'>
-                                {selectedFile && previewUrl ? (
+                                {isProcessing ? (
+                                    <>
+                                        <Loader2 className={cn(
+                                            'animate-spin text-blue-600',
+                                            isMobile ? 'w-6 h-6' : 'w-8 h-8'
+                                        )} />
+                                        <p className={cn('font-medium text-gray-600 text-center px-2', isMobile ? 'text-xs' : 'text-sm')}>
+                                            Processing image...
+                                        </p>
+                                        <p className='text-xs text-gray-500'>Extracting metadata</p>
+                                    </>
+                                ) : selectedFile && previewUrl ? (
                                     <>
                                         <div className={cn(
                                             'rounded-lg overflow-hidden border border-gray-300 bg-gray-100',
@@ -432,9 +504,10 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
                         headline={title}
                         location={location}
                         handle={handle}
-                        date={new Date().toLocaleDateString()}
+                        date={datetime ? new Date(datetime).toLocaleDateString() : new Date().toLocaleDateString()}
                         imageSrc={previewUrl}
                         layout={orientation}
+                        className='max-h-[80vh]'
                     />
                     <div className='flex items-center justify-center gap-2'>
                         <Button
