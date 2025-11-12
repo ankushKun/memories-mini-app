@@ -323,7 +323,7 @@ const LandingPage: React.FC = () => {
                             <h2 className="text-white font-instrument text-5xl md:text-8xl md:leading-[90px]">
                                 Preserve your memories forever
                             </h2>
-                            <p className="font-montserrat text-white text-xl leading-relaxed max-w-xl">
+                            <p className="font-montserrat text-white text-xl leading-relaxed">
                                 Save your valuable moments for atleast the coming 200 years
                             </p>
                         </div>
