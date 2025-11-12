@@ -687,7 +687,7 @@ const GalleryPage: React.FC = () => {
             )}
 
             {/* Floating Action Button */}
-            <div className={`fixed z-20 top-10 right-10`}>
+            <div className={`fixed z-20 top-5 right-5`}>
                 <Button
                     className="bg-[#000DFF] text-white border border-[#2C2C2C] px-10 py-6 text-base font-medium rounded-md flex items-center gap-2"
                     variant="ghost"
@@ -695,7 +695,7 @@ const GalleryPage: React.FC = () => {
                     onClick={handleUploadClick}
                 >
                     <Upload className="w-4 h-4" />
-                    Preserve your memory
+                    Preserve your memories
                 </Button>
             </div>
 

@@ -316,15 +316,15 @@ const LandingPage: React.FC = () => {
             {/* Main Content */}
             <div className="relative z-10 flex-1 px-6 md:px-16 py-10 md:py-0 md:-top-16">
                 {/* Welcome Section - Always Visible */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center min-h-[90vh] h-screen">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center h-[90vh]">
                     {/* Left Content */}
                     <div className="space-y-10 self-center">
                         <div className="space-y-6">
                             <h2 className="text-white font-instrument text-5xl md:text-8xl md:leading-[90px]">
-                                Preserve your memories forever
+                                Your memories can last forever
                             </h2>
                             <p className="font-montserrat text-white text-xl leading-relaxed">
-                                Save your valuable moments for atleast the coming 200 years
+                                Save your favourite photo memories forever - for free! <br />Own your memories with Arweave, upload now.
                             </p>
                         </div>
 
@@ -336,7 +336,7 @@ const LandingPage: React.FC = () => {
                                 onClick={handleUploadClick}
                             >
                                 <Upload className="w-5 h-5" />
-                                Make it permanent now
+                                Preserve your memories
                             </Button>
                             <Button
                                 variant="link"
