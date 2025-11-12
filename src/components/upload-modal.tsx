@@ -227,7 +227,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
     if (isMobile && mobileStep === 2) {
         return (
             <div
-                className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex flex-col items-center justify-center p-4 gap-4 animate-in fade-in duration-300"
+                className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex flex-col items-center p-4 gap-4 overflow-y-auto animate-in fade-in duration-300"
                 onClick={handleBackdropClick}
             >
                 {/* Back button */}
@@ -249,6 +249,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
                     date={new Date().toLocaleDateString()}
                     imageSrc={previewUrl}
                     layout='vertical'
+                    className='max-h-[80vh]'
                 />
 
                 {/* Upload button */}
@@ -506,6 +507,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
                         date={datetime ? new Date(datetime).toLocaleDateString() : new Date().toLocaleDateString()}
                         imageSrc={previewUrl}
                         layout={orientation}
+                        className='max-h-[80vh]'
                     />
                     <div className='flex items-center justify-center gap-2'>
                         <Button
