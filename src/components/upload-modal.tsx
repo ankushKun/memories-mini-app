@@ -57,6 +57,10 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
         return async (file: File) => {
             if (!file.type.startsWith('image/')) return;
 
+            // reset previous metadata
+            setDatetime('');
+            setLocation('');
+
             setIsProcessing(true);
 
             try {
@@ -382,7 +386,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
                                 {isProcessing ? (
                                     <>
                                         <Loader2 className={cn(
-                                            'animate-spin text-purple-600',
+                                            'animate-spin text-blue-600',
                                             isMobile ? 'w-6 h-6' : 'w-8 h-8'
                                         )} />
                                         <p className={cn('font-medium text-gray-600 text-center px-2', isMobile ? 'text-xs' : 'text-sm')}>
@@ -499,7 +503,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
                         headline={title}
                         location={location}
                         handle={handle}
-                        date={new Date().toLocaleDateString()}
+                        date={datetime ? new Date(datetime).toLocaleDateString() : new Date().toLocaleDateString()}
                         imageSrc={previewUrl}
                         layout={orientation}
                     />
