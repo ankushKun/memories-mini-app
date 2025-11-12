@@ -10,6 +10,7 @@ interface StampPreviewProps {
     handle: string;
     date: string;
     imageSrc: string;
+    size?: 'sm' | 'md' | 'lg';
     layout: 'horizontal' | 'vertical';
     noText?: boolean;
     onLoad?: () => void;
@@ -25,6 +26,7 @@ export default function StampPreview({
     imageSrc,
     layout,
     noText = false,
+    size,
     onLoad,
     onError,
     className,
@@ -90,7 +92,8 @@ export default function StampPreview({
                         {/* Main headline */}
                         <div className="items-center justify-center">
                             <h1 className={cn(
-                                "font-light leading-tight font-instrument text-left text-4xl md:text-7xl"
+                                "font-light leading-tight font-instrument text-left",
+                                size === 'sm' ? 'text-2xl md:text-4xl' : size === 'lg' ? 'text-5xl md:text-8xl' : (layout === 'horizontal' ? 'text-4xl md:text-7xl' : 'text-3xl md:text-6xl')
                             )}>
                                 {headline}
                             </h1>
