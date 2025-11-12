@@ -562,7 +562,7 @@ const GalleryPage: React.FC = () => {
 
     return (
         <div className="relative w-full h-screen bg-black">
-            <div className='absolute top-10 left-10 z-40'>
+            <div className='absolute top-8 left-8 z-40'>
                 <MemoriesLogo theme='light' />
             </div>
 
