@@ -322,11 +322,23 @@ const GalleryPage: React.FC = () => {
         const arweaveArray = Array.from(arweaveImageMap.entries())
 
         // Calculate optimal items per row to fill the grid completely
-        const itemsPerRow = Math.ceil(Math.sqrt(validImageCount))
+        // Add 1 to account for the upload button
+        const totalItemCount = validImageCount + 1
+        const itemsPerRow = Math.ceil(Math.sqrt(totalItemCount))
 
         // Calculate how many items we need to fill the last row
-        const remainder = validImageCount % itemsPerRow
+        const remainder = totalItemCount % itemsPerRow
         const itemsNeeded = remainder === 0 ? 0 : itemsPerRow - remainder
+
+        // Insert upload button at a strategic position - roughly every 20-25 items
+        // Position it somewhere in the middle third of visible items for better visibility
+        const uploadButtonPosition = validImageCount > 20
+            ? Math.floor(validImageCount * 0.33) + Math.floor(Math.random() * Math.min(10, validImageCount * 0.2))
+            : validImageCount > 5
+                ? Math.floor(validImageCount / 2)
+                : validImageCount > 0
+                    ? Math.floor(Math.random() * (validImageCount - 1)) + 1
+                    : 0
 
         // Duplicate items to fill empty spaces in the grid
         const itemsToRender = [...arweaveArray]
@@ -366,9 +378,12 @@ const GalleryPage: React.FC = () => {
             }
         }
 
-        return itemsToRender.map(([transactionId, arweaveData], index) => {
-            const row = Math.floor(index / itemsPerRow)
-            const col = index % itemsPerRow
+        // Map all items including the upload button
+        const allItems: CanvasItem[] = itemsToRender.map(([transactionId, arweaveData], index) => {
+            // Adjust index if we're past the upload button position
+            const actualIndex = index >= uploadButtonPosition ? index + 1 : index
+            const row = Math.floor(actualIndex / itemsPerRow)
+            const col = actualIndex % itemsPerRow
             const x = col * (size + spacing)
             const y = row * (size + spacing)
 
@@ -389,6 +404,29 @@ const GalleryPage: React.FC = () => {
                 }
             }
         })
+
+        // Insert upload button item at the random position
+        const uploadButtonRow = Math.floor(uploadButtonPosition / itemsPerRow)
+        const uploadButtonCol = uploadButtonPosition % itemsPerRow
+        const uploadButtonItem: CanvasItem = {
+            id: 'upload-button',
+            x: uploadButtonCol * (size + spacing),
+            y: uploadButtonRow * (size + spacing),
+            width: size,
+            height: size,
+            imageUrl: '', // Empty for button
+            title: 'Upload Memory',
+            metadata: {
+                description: 'Click to upload a new memory',
+                tags: ['upload'],
+                date: new Date(),
+                camera: undefined
+            }
+        }
+
+        allItems.splice(uploadButtonPosition, 0, uploadButtonItem)
+
+        return allItems
     }, [isMobile, validatedImages])
 
     // Load initial data
@@ -428,6 +466,12 @@ const GalleryPage: React.FC = () => {
 
     // Handle image click to open modal
     const handleImageClick = useCallback((item: CanvasItem) => {
+        // Check if this is the upload button (including tiled versions)
+        if (item.id === 'upload-button' || item.id.startsWith('upload-button-tile-')) {
+            setIsUploadModalOpen(true)
+            return
+        }
+
         // Reset canvas dragging state when opening modal
         if (canvasRef.current) {
             canvasRef.current.resetDragState()
@@ -562,7 +606,7 @@ const GalleryPage: React.FC = () => {
 
     return (
         <div className="relative w-full h-screen bg-black">
-            <div className='absolute top-10 left-10 z-40'>
+            <div className='absolute !top-6 !left-6 z-40'>
                 <MemoriesLogo theme='light' />
             </div>
 
@@ -645,12 +689,13 @@ const GalleryPage: React.FC = () => {
             {/* Floating Action Button */}
             <div className={`fixed z-20 top-10 right-10`}>
                 <Button
-                    className="bg-[#000DFF] text-white border border-[#2C2C2C] px-6 py-3 text-base font-medium rounded-md flex items-center gap-2"
+                    className="bg-[#000DFF] text-white border border-[#2C2C2C] px-10 py-6 text-base font-medium rounded-md flex items-center gap-2"
                     variant="ghost"
+                    size="lg"
                     onClick={handleUploadClick}
                 >
                     <Upload className="w-4 h-4" />
-                    Upload Now
+                    Preserve your memory
                 </Button>
             </div>
 

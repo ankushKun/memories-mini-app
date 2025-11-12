@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router'
-import { ImageIcon } from 'lucide-react'
+import { ImageIcon, Link as LinkIcon, Check, Download } from 'lucide-react'
 import { Button } from './ui/button'
 import { useIsMobile } from '../hooks/use-mobile'
 import CopySharePopup from './copy-share-popup'
@@ -14,6 +14,7 @@ interface MemoryData {
     location: string
     handle: string
     imageUrl: string
+    isPublic: boolean
 }
 
 const UploadedPage: React.FC = () => {
@@ -27,6 +28,7 @@ const UploadedPage: React.FC = () => {
     const [isSharePopupOpen, setIsSharePopupOpen] = useState(false)
     const [isCapturing, setIsCapturing] = useState(false)
     const [capturedBlob, setCapturedBlob] = useState<Blob | null>(null)
+    const [linkCopied, setLinkCopied] = useState(false)
     const stampPreviewRef = useRef<HTMLDivElement>(null)
     const hiddenHorizontalRef = useRef<HTMLDivElement>(null)
 
@@ -92,7 +94,8 @@ const UploadedPage: React.FC = () => {
                 title: tags.Title || 'Untitled Memory',
                 location: tags.Location || '',
                 handle: tags.Handle || '',
-                imageUrl: `https://arweave.net/${transaction.id}`
+                imageUrl: `https://arweave.net/${transaction.id}`,
+                isPublic: tags.Visibility === 'Public'
             }
 
             // Save to localStorage for gallery to use
@@ -180,7 +183,7 @@ const UploadedPage: React.FC = () => {
 
     const getTweetText = () => {
         if (!memoryData) return ''
-        return `Check out this memory "${memoryData.title}" preserved forever on Arweave! 🌟\n\nView it at: ${window.location.origin}/#/view/${memoryData.id}\n\n#PermanentOnArweave`
+        return `Check out this memory "${memoryData.title}" preserved forever! 🌟\n\nView it at: ${window.location.origin}/#/view/${memoryData.id}\n\n`
     }
 
     const handleGallery = () => {
@@ -195,7 +198,7 @@ const UploadedPage: React.FC = () => {
         if (!memoryData) return
 
         const url = `${window.location.origin}/#/view/${memoryData.id}`
-        const text = `Check out this memory "${memoryData.title}" preserved forever on Arweave! 🌟`
+        const text = `Check out this memory "${memoryData.title}" preserved forever! 🌟`
         const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`
 
         window.open(telegramUrl, '_blank')
@@ -205,10 +208,53 @@ const UploadedPage: React.FC = () => {
         if (!memoryData) return
 
         const url = `${window.location.origin}/#/view/${memoryData.id}`
-        const text = `Check out this memory "${memoryData.title}" preserved forever on Arweave! 🌟\n\nView it at: ${url}\n\n#PermanentOnArweave`
+        const text = `Check out this memory "${memoryData.title}" preserved forever! 🌟\n\nView it at: ${url}\n\n`
         const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`
 
         window.open(whatsappUrl, '_blank')
+    }
+
+    const handleCopyLink = async () => {
+        if (!memoryData) return
+
+        const url = `${window.location.origin}/#/view/${memoryData.id}`
+
+        try {
+            await navigator.clipboard.writeText(url)
+            setLinkCopied(true)
+            setTimeout(() => setLinkCopied(false), 2000)
+        } catch (err) {
+            console.error('Failed to copy link:', err)
+        }
+    }
+
+    const handleDownloadImage = async () => {
+        if (!capturedBlob) {
+            // If we don't have the captured blob yet, capture it first
+            const blob = await captureStampAsImage()
+            if (!blob) {
+                console.error('Failed to capture image')
+                return
+            }
+            downloadBlob(blob)
+        } else {
+            // Use the existing captured blob
+            downloadBlob(capturedBlob)
+        }
+    }
+
+    const downloadBlob = (blob: Blob) => {
+        if (!memoryData) return
+
+        // Create a download link
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = url
+        link.download = `${memoryData.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_memory_${memoryData.id}.png`
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
     }
 
     if (isLoading) {
@@ -243,12 +289,22 @@ const UploadedPage: React.FC = () => {
     return (
         <div className="min-h-screen bg-black relative overflow-hidden">
             {/* Header */}
-            <div className="relative z-10 p-6 md:p-8">
+            <div className="relative z-10 p-6">
                 <MemoriesLogo />
             </div>
 
             {/* Main Content */}
             <div className="relative z-10 flex flex-col items-center justify-center min-h-[calc(100vh-200px)] px-6 py-8 gap-8">
+                {/* Title Section */}
+                <div className="text-center space-y-3 max-w-2xl">
+                    <h1 className="text-white font-instrument text-4xl md:text-6xl leading-tight">
+                        Your memory is now permanent
+                    </h1>
+                    <p className="text-white/80 font-montserrat text-lg md:text-xl">
+                        Preserved for at least the next 200 years
+                    </p>
+                </div>
+
                 {/* Visible Stamp Preview - vertical on mobile, horizontal on desktop */}
                 <div ref={stampPreviewRef}>
                     <StampPreview
@@ -287,6 +343,17 @@ const UploadedPage: React.FC = () => {
                         {isCapturing ? 'Capturing...' : 'Share'}
                     </Button>
 
+                    {/* Download Image Button */}
+                    <Button
+                        onClick={handleDownloadImage}
+                        disabled={isCapturing}
+                        variant="outline"
+                        className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20 px-6 py-3 text-base font-medium rounded-md flex items-center justify-center gap-2 disabled:opacity-50"
+                    >
+                        <Download className="w-4 h-4" />
+                        Download Image
+                    </Button>
+
                     {/* Social Share Buttons */}
                     {/* <div className="grid grid-cols-2 gap-3 w-full">
                         <Button
@@ -307,13 +374,34 @@ const UploadedPage: React.FC = () => {
                         </Button>
                     </div> */}
 
-                    <Button
-                        onClick={handleGallery}
-                        variant="outline"
-                        className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20 px-6 py-3 text-base font-medium rounded-md flex items-center justify-center gap-2"
-                    >
-                        Gallery
-                    </Button>
+                    {memoryData.isPublic ? (
+                        <Button
+                            onClick={handleGallery}
+                            variant="outline"
+                            className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20 px-6 py-3 text-base font-medium rounded-md flex items-center justify-center gap-2"
+                        >
+                            <ImageIcon className="w-4 h-4" />
+                            Gallery
+                        </Button>
+                    ) : (
+                        <Button
+                            onClick={handleCopyLink}
+                            variant="outline"
+                            className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20 px-6 py-3 text-base font-medium rounded-md flex items-center justify-center gap-2"
+                        >
+                            {linkCopied ? (
+                                <>
+                                    <Check className="w-4 h-4" />
+                                    Link Copied!
+                                </>
+                            ) : (
+                                <>
+                                    <LinkIcon className="w-4 h-4" />
+                                    Copy Link
+                                </>
+                            )}
+                        </Button>
+                    )}
                 </div>
             </div>
 

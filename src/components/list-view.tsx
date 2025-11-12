@@ -320,7 +320,7 @@ const ListViewComponent: React.FC<ListViewProps> = ({ items, onImageClick }) => 
                     style={{ scrollBehavior: 'auto' }}
                     scrollHideDelay={0}
                 >
-                    <div className="space-y-2 py-10 p-1 md:px-16 tracking-[5px] max-h-[50vh]" style={{ scrollBehavior: 'auto' }}>
+                    <div className="p-10 md:px-16 tracking-[5px]" style={{ scrollBehavior: 'auto' }}>
                         {infiniteItems.map((item, index) => {
                             const isSelected = selectedItem?.id === item.id
                             const originalIndex = index % items.length

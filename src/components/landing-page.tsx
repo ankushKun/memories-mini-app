@@ -309,47 +309,41 @@ const LandingPage: React.FC = () => {
     return (
         <div className="min-h-screen max-h-screen bg-black relative overflow-hidden">
             {/* Header */}
-            <div className="relative z-10 p-6 md:p-8">
+            <div className="relative z-10 p-6">
                 <MemoriesLogo />
             </div>
 
             {/* Main Content */}
             <div className="relative z-10 flex-1 px-6 md:px-16 py-10 md:py-0 md:-top-16">
                 {/* Welcome Section - Always Visible */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center min-h-[70vh] h-screen">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center min-h-[90vh] h-screen">
                     {/* Left Content */}
-                    <div className="space-y-8 self-center">
+                    <div className="space-y-10 self-center">
                         <div className="space-y-6">
-                            <h2 className="text-white font-instrument text-4xl md:text-8xl md:leading-[90px]">
-                                {/* Your memories are rented, let's change that! */}
-                                If you could store one memory forever what would it be?
+                            <h2 className="text-white font-instrument text-5xl md:text-8xl md:leading-[90px]">
+                                Preserve your memories forever
                             </h2>
-                            <p className="font-montserrat text-white md:text-xl leading-relaxed max-w-xl">
-                                {/* If you could store one memory forever what would it be? Store your first permanent memory for <span className="text-white font-medium">free</span> with Arweave today */}
-                                Your memories are rented, let's change that!<br />
-                                Store your first permanent memory for <span className="text-white font-medium">free</span> with Arweave today
+                            <p className="font-montserrat text-white text-xl leading-relaxed">
+                                Save your valuable moments for atleast the coming 200 years
                             </p>
                         </div>
 
-                        <div className="flex flex-row items-start gap-4">
-                            <div className='flex flex-col items-center gap-3'>
-                                <Button
-                                    className="bg-[#000DFF] h-12 text-white border border-[#2C2C2C] px-6 py-3 text-base font-medium rounded-md flex items-center gap-2"
-                                    variant="ghost"
-                                    size="lg"
-                                    onClick={handleUploadClick}
-                                >
-                                    <Upload className="w-4 h-4" />
-                                    Upload Now
-                                </Button>
-                                {/* {api && <span className='text-xs text-muted-foreground/50 relative -top-3'>{api.id == "wauth-twitter" ? `@${api.authData?.username}` : address ? `${address.slice(0, 8)}...${address.slice(-4)}` : ''}</span>} */}
-                            </div>
+                        <div className="flex flex-col items-start gap-5">
+                            <Button
+                                className="bg-[#000DFF] h-16 text-white border border-[#2C2C2C] px-10 py-4 text-xl font-semibold rounded-md flex items-center gap-3 hover:bg-[#0008CC] transition-colors"
+                                variant="ghost"
+                                size="lg"
+                                onClick={handleUploadClick}
+                            >
+                                <Upload className="w-5 h-5" />
+                                Make it permanent now
+                            </Button>
                             <Button
                                 variant="link"
                                 onClick={handleExploreGallery}
-                                className="p-0 m-0 mt-1 text-muted-foreground font-normal hover:no-underline hover:text-foreground"
+                                className="p-0 m-0 text-xl text-muted-foreground font-normal hover:no-underline hover:text-foreground"
                             >
-                                or <span className="underline">Explore</span> the Gallery
+                                or <span className="underline">explore the gallery</span>
                             </Button>
                         </div>
                     </div>

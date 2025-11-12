@@ -80,10 +80,10 @@ const CardView: React.FC<CardViewProps> = ({ items, onImageClick }) => {
                             >
                                 <div className="flex items-center justify-center h-full py-12">
                                     <div
-                                        className={`cursor-pointer transition-all relative duration-500 ease-out max-h-[70vh] ${isCenterItem
-                                            ? 'scale-100 z-50 opacity-100'
-                                            : 'scale-[0.6] md:scale-[0.65] z-10 opacity-50'
-                                            } hover:opacity-100`}
+                                        className={`cursor-pointer transition-all relative duration-500 ease-out ${isCenterItem
+                                            ? 'scale-100 z-50'
+                                            : 'scale-[0.8] opacity-60 z-10'
+                                            }`}
                                         onClick={() => onImageClick(item)}
                                     >
                                         <StampPreview
@@ -92,8 +92,9 @@ const CardView: React.FC<CardViewProps> = ({ items, onImageClick }) => {
                                             handle="@memories"
                                             date={formatDate(item.metadata?.date)}
                                             imageSrc={item.imageUrl}
+                                            size='sm'
                                             layout="vertical"
-                                            className="w-full max-w-[80vw] md:max-w-full h-auto max-h-full object-contain drop-shadow-2xl"
+                                            className="w-full h-full max-h-[500px] object-contain drop-shadow-2xl"
                                         />
                                     </div>
                                 </div>
@@ -105,11 +106,11 @@ const CardView: React.FC<CardViewProps> = ({ items, onImageClick }) => {
                 {/* Navigation Buttons */}
                 <CarouselPrevious
                     size="lg"
-                    className="left-4 md:left-8 h-12 w-12 !bg-black/50 hover:bg-black/60 text-white border-white/20 backdrop-blur-sm disabled:opacity-30"
+                    className="h-12 w-12 translate-x-[15vw] md:translate-x-[40vw] !bg-black/50 hover:bg-black/60 text-white border-white/20 backdrop-blur-sm disabled:opacity-30"
                 />
                 <CarouselNext
                     size="lg"
-                    className="right-4 md:right-8 h-12 w-12 !bg-black/50 hover:bg-black/60 text-white border-white/20 backdrop-blur-sm disabled:opacity-30"
+                    className="h-12 w-12 -translate-x-[15vw] md:-translate-x-[40vw] !bg-black/50 hover:bg-black/60 text-white border-white/20 backdrop-blur-sm disabled:opacity-30"
                 />
             </Carousel>
         </div>
