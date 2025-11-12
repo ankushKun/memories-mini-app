@@ -274,8 +274,8 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
     return (
         <div
             className={cn(
-                "fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center animate-in fade-in duration-300",
-                isMobile ? "p-4 flex-col overflow-y-auto" : "p-8 gap-20"
+                "fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center animate-in fade-in duration-300",
+                isMobile ? "p-4 flex-col overflow-y-auto" : "justify-center p-8 gap-20"
             )}
             onClick={handleBackdropClick}
         >
