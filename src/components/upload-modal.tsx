@@ -38,6 +38,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
     const [handle, setHandle] = useState('')
     const [datetime, setDatetime] = useState('')
     const [isPublic, setIsPublic] = useState(true)
+    const [isProcessing, setIsProcessing] = useState(false)
     const [isUploading, setIsUploading] = useState(false)
     const [isDragging, setIsDragging] = useState(false)
     const [uploadError, setUploadError] = useState<string | null>(null)
@@ -56,28 +57,35 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
         return async (file: File) => {
             if (!file.type.startsWith('image/')) return;
 
-            // extract Exif metadata
-            const tags = await ExifReader.load(file);
-            const imageDate = tags['DateTimeOriginal']?.description;
-            const imageLongitude = tags['GPSLongitude']?.description;
-            const imageLatitude = tags['GPSLatitude']?.description;
+            setIsProcessing(true);
 
-            // set datetime if available
-            if (imageDate) {
-                // the datetime is provided in format "YYYY:MM:DD HH:MM:SS", convert to "YYYY-MM-DD HH:MM:SS"
-                const formattedDate = imageDate.replace(/^(\d{4}):(\d{2}):(\d{2})/, '$1-$2-$3');
-                setDatetime(formattedDate);
-            }
+            try {
+                // extract Exif metadata
+                const tags = await ExifReader.load(file);
+                const imageDate = tags['DateTimeOriginal']?.description;
+                const imageLongitude = tags['GPSLongitude']?.description;
+                const imageLatitude = tags['GPSLatitude']?.description;
 
-            // reverse geocode to get location name if GPS data is available
-            if (imageLongitude && imageLatitude) {
-                const url = `https://nominatim.openstreetmap.org/reverse?lat=${imageLatitude}&lon=${imageLongitude}&format=json`;
-                const response = await fetch(url);
-                const data = await response.json();
-                if (data && data.name) {
-                    setLocation(data.name);
+                // set datetime if available
+                if (imageDate) {
+                    // the datetime is provided in format "YYYY:MM:DD HH:MM:SS", convert to "YYYY-MM-DD HH:MM:SS"
+                    const formattedDate = imageDate.replace(/^(\d{4}):(\d{2}):(\d{2})/, '$1-$2-$3');
+                    setDatetime(formattedDate);
                 }
+
+                // reverse geocode to get location name if GPS data is available
+                if (imageLongitude && imageLatitude) {
+                    const url = `https://nominatim.openstreetmap.org/reverse?lat=${imageLatitude}&lon=${imageLongitude}&format=json`;
+                    const response = await fetch(url);
+                    const data = await response.json();
+                    if (data && data.name) {
+                        setLocation(data.name);
+                    }
+                }
+            } catch (error) {
+                console.error('Error reading Exif data or reverse geocoding:', error);
             }
+            
 
             // Check if it's a HEIC/HEIF file (by extension or MIME type)
             const isHeic = file.type === 'image/heic' ||
@@ -86,16 +94,25 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
                 file.name.toLowerCase().endsWith('.heif')
 
             if (isHeic) {
-                const buffer = await file.arrayBuffer()
-                const output = await convertHEIC({
-                    buffer: new Uint8Array(buffer),
-                    format: 'JPEG',
-                    quality: 1,
-                })
-                const blob = new Blob([output], { type: 'image/jpeg' })
-                file = new File([blob], file.name.replace(/\.(heic|heif)$/i, '.jpg'), { type: 'image/jpeg' })
+                try {
+                    // Convert HEIC to JPEG
+                    const buffer = await file.arrayBuffer()
+                    const output = await convertHEIC({
+                        buffer: new Uint8Array(buffer),
+                        format: 'JPEG',
+                        quality: 1,
+                    })
+                    const blob = new Blob([output], { type: 'image/jpeg' })
+                    file = new File([blob], file.name.replace(/\.(heic|heif)$/i, '.jpg'), { type: 'image/jpeg' })
+                } catch (error) {
+                    console.error('Error converting HEIC image:', error)
+                    alert('Failed to process HEIC image. Please try a different image format.')
+                    setIsProcessing(false)
+                    return
+                }
             }
 
+            setIsProcessing(false)
             setSelectedFile(file)
             const url = URL.createObjectURL(file)
             setPreviewUrl(url)
@@ -239,7 +256,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
                     )}
                     <Button
                         onClick={handleSubmit}
-                        disabled={isUploading}
+                        disabled={isUploading || isProcessing}
                         className='w-full bg-white text-black rounded-lg disabled:opacity-50 disabled:cursor-not-allowed text-base p-4 font-medium hover:bg-white/90'
                     >
                         {isUploading ? 'Uploading...' : 'Upload Memory'}
