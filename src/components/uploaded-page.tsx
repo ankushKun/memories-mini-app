@@ -183,7 +183,7 @@ const UploadedPage: React.FC = () => {
 
     const getTweetText = () => {
         if (!memoryData) return ''
-        return `Check out this memory "${memoryData.title}" preserved forever on Arweave! 🌟\n\nView it at: ${window.location.origin}/#/view/${memoryData.id}\n\n#PermanentOnArweave`
+        return `Check out this memory "${memoryData.title}" preserved forever! 🌟\n\nView it at: ${window.location.origin}/#/view/${memoryData.id}\n\n`
     }
 
     const handleGallery = () => {
@@ -198,7 +198,7 @@ const UploadedPage: React.FC = () => {
         if (!memoryData) return
 
         const url = `${window.location.origin}/#/view/${memoryData.id}`
-        const text = `Check out this memory "${memoryData.title}" preserved forever on Arweave! 🌟`
+        const text = `Check out this memory "${memoryData.title}" preserved forever! 🌟`
         const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`
 
         window.open(telegramUrl, '_blank')
@@ -208,7 +208,7 @@ const UploadedPage: React.FC = () => {
         if (!memoryData) return
 
         const url = `${window.location.origin}/#/view/${memoryData.id}`
-        const text = `Check out this memory "${memoryData.title}" preserved forever on Arweave! 🌟\n\nView it at: ${url}\n\n#PermanentOnArweave`
+        const text = `Check out this memory "${memoryData.title}" preserved forever! 🌟\n\nView it at: ${url}\n\n`
         const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`
 
         window.open(whatsappUrl, '_blank')
@@ -289,12 +289,22 @@ const UploadedPage: React.FC = () => {
     return (
         <div className="min-h-screen bg-black relative overflow-hidden">
             {/* Header */}
-            <div className="relative z-10 p-6 md:p-8">
+            <div className="relative z-10 p-6">
                 <MemoriesLogo />
             </div>
 
             {/* Main Content */}
             <div className="relative z-10 flex flex-col items-center justify-center min-h-[calc(100vh-200px)] px-6 py-8 gap-8">
+                {/* Title Section */}
+                <div className="text-center space-y-3 max-w-2xl">
+                    <h1 className="text-white font-instrument text-4xl md:text-6xl leading-tight">
+                        Your memory is now permanent
+                    </h1>
+                    <p className="text-white/80 font-montserrat text-lg md:text-xl">
+                        Preserved for at least the next 200 years
+                    </p>
+                </div>
+
                 {/* Visible Stamp Preview - vertical on mobile, horizontal on desktop */}
                 <div ref={stampPreviewRef}>
                     <StampPreview
