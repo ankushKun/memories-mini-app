@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useMemo } from 'react'
 import { ArrowRight, Upload, Image as ImageIcon, ArrowLeft, Check } from 'lucide-react'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
@@ -12,6 +12,8 @@ import { Toggle } from './ui/toggle'
 import { Switch } from './ui/switch'
 import { Checkbox } from './ui/checkbox'
 import { QuickWallet } from 'quick-wallet'
+import convertHEIC from 'heic-convert/browser'
+import ExifReader from 'exifreader'
 
 interface UploadModalProps {
     isOpen: boolean
@@ -25,6 +27,7 @@ export interface UploadData {
     location: string
     handle: string
     isPublic: boolean
+    datetime?: string
 }
 
 const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) => {
@@ -33,6 +36,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
     const [title, setTitle] = useState('')
     const [location, setLocation] = useState('')
     const [handle, setHandle] = useState('')
+    const [datetime, setDatetime] = useState('')
     const [isPublic, setIsPublic] = useState(true)
     const [isUploading, setIsUploading] = useState(false)
     const [isDragging, setIsDragging] = useState(false)
@@ -47,6 +51,56 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
     // const { setOpen } = useProfileModal()
     const address = QuickWallet.getActiveAddress()
     const api = QuickWallet
+
+    const handleNewFile = useMemo(() => {
+        return async (file: File) => {
+            if (!file.type.startsWith('image/')) return;
+
+            // extract Exif metadata
+            const tags = await ExifReader.load(file);
+            const imageDate = tags['DateTimeOriginal']?.description;
+            const imageLongitude = tags['GPSLongitude']?.description;
+            const imageLatitude = tags['GPSLatitude']?.description;
+
+            // set datetime if available
+            if (imageDate) {
+                // the datetime is provided in format "YYYY:MM:DD HH:MM:SS", convert to "YYYY-MM-DD HH:MM:SS"
+                const formattedDate = imageDate.replace(/^(\d{4}):(\d{2}):(\d{2})/, '$1-$2-$3');
+                setDatetime(formattedDate);
+            }
+
+            // reverse geocode to get location name if GPS data is available
+            if (imageLongitude && imageLatitude) {
+                const url = `https://nominatim.openstreetmap.org/reverse?lat=${imageLatitude}&lon=${imageLongitude}&format=json`;
+                const response = await fetch(url);
+                const data = await response.json();
+                if (data && data.name) {
+                    setLocation(data.name);
+                }
+            }
+
+            // Check if it's a HEIC/HEIF file (by extension or MIME type)
+            const isHeic = file.type === 'image/heic' ||
+                file.type === 'image/heif' ||
+                file.name.toLowerCase().endsWith('.heic') ||
+                file.name.toLowerCase().endsWith('.heif')
+
+            if (isHeic) {
+                const buffer = await file.arrayBuffer()
+                const output = await convertHEIC({
+                    buffer: new Uint8Array(buffer),
+                    format: 'JPEG',
+                    quality: 1,
+                })
+                const blob = new Blob([output], { type: 'image/jpeg' })
+                file = new File([blob], file.name.replace(/\.(heic|heif)$/i, '.jpg'), { type: 'image/jpeg' })
+            }
+
+            setSelectedFile(file)
+            const url = URL.createObjectURL(file)
+            setPreviewUrl(url)
+        }
+    }, [])
 
     // Reset uploading state, mobile step, and error when modal closes
     useEffect(() => {
@@ -67,27 +121,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
     const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0]
         if (!file) return
-
-        // Check if it's a HEIC/HEIF file (by extension or MIME type)
-        const isHeic = file.type === 'image/heic' ||
-            file.type === 'image/heif' ||
-            file.name.toLowerCase().endsWith('.heic') ||
-            file.name.toLowerCase().endsWith('.heif')
-
-        if (isHeic) {
-            alert('HEIC/HEIF images are not supported. Please convert your image to JPG or PNG first.')
-            // Reset the file input
-            if (fileInputRef.current) {
-                fileInputRef.current.value = ''
-            }
-            return
-        }
-
-        if (file.type.startsWith('image/')) {
-            setSelectedFile(file)
-            const url = URL.createObjectURL(file)
-            setPreviewUrl(url)
-        }
+        handleNewFile(file)
     }
 
     const handleDragOver = (event: React.DragEvent) => {
@@ -105,23 +139,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
         setIsDragging(false)
         const file = event.dataTransfer.files[0]
         if (!file) return
-
-        // Check if it's a HEIC/HEIF file (by extension or MIME type)
-        const isHeic = file.type === 'image/heic' ||
-            file.type === 'image/heif' ||
-            file.name.toLowerCase().endsWith('.heic') ||
-            file.name.toLowerCase().endsWith('.heif')
-
-        if (isHeic) {
-            alert('HEIC/HEIF images are not supported. Please convert your image to JPG or PNG first.')
-            return
-        }
-
-        if (file.type.startsWith('image/')) {
-            setSelectedFile(file)
-            const url = URL.createObjectURL(file)
-            setPreviewUrl(url)
-        }
+        handleNewFile(file)
     }
 
     const handleSubmit = async (event: React.FormEvent) => {
@@ -156,6 +174,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
         setTitle('')
         setLocation('')
         setHandle('')
+        setDatetime('')
         setIsUploading(false)
         setMobileStep(1)
         setUploadError(null)
@@ -278,6 +297,24 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
                             disabled={isUploading}
                         />
                     </div>
+                    { 
+                        datetime ?
+                        (
+                            <div className='flex flex-col gap-2'>
+                                <div className={cn('font-extralight font-instrument', isMobile ? 'text-xl' : 'text-3xl')}>
+                                    Date Time <span className='text-red-500'>*</span>
+                                </div>
+                                <Input
+                                    placeholder='YYYY-MM-DD HH:MM:SS'
+                                    className={cn('w-full border border-black/20 rounded-lg', isMobile ? 'p-3 text-sm' : 'p-5')}
+                                    value={datetime}
+                                    onChange={(e) => setDatetime(e.target.value)}
+                                    required
+                                    disabled={isUploading}
+                                />
+                            </div>
+                        )
+                        : null }
                     <div className='flex flex-col gap-2'>
                         <div className={cn('font-extralight font-instrument', isMobile ? 'text-xl' : 'text-3xl')}>
                             Location <span className='text-red-500'>*</span>
