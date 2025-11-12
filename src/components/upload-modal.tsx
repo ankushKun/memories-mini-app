@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react'
-import { ArrowRight, Upload, Image as ImageIcon, ArrowLeft, Check } from 'lucide-react'
+import { ArrowRight, Upload, Image as ImageIcon, ArrowLeft, Check, Loader2 } from 'lucide-react'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { useIsMobile } from '../hooks/use-mobile'
@@ -362,12 +362,13 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
                                     : 'cursor-pointer',
                                 isDragging && !isUploading
                                     ? 'border-purple-500 bg-purple-50'
-                                    : 'border-black/20 hover:border-black/40 hover:bg-gray-50'
+                                    : 'border-black/20 hover:border-black/40 hover:bg-gray-50',
+                                isProcessing && 'cursor-not-allowed opacity-75'
                             )}
-                            onDragOver={!isUploading ? handleDragOver : undefined}
-                            onDragLeave={!isUploading ? handleDragLeave : undefined}
-                            onDrop={!isUploading ? handleDrop : undefined}
-                            onClick={!isUploading ? () => fileInputRef.current?.click() : undefined}
+                            onDragOver={!isUploading && !isProcessing ? handleDragOver : undefined}
+                            onDragLeave={!isUploading && !isProcessing ? handleDragLeave : undefined}
+                            onDrop={!isUploading && !isProcessing ? handleDrop : undefined}
+                            onClick={!isUploading && !isProcessing ? () => fileInputRef.current?.click() : undefined}
                         >
                             <input
                                 ref={fileInputRef}
@@ -375,9 +376,21 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
                                 accept="image/*"
                                 onChange={handleFileSelect}
                                 className="hidden"
+                                disabled={isProcessing}
                             />
                             <div className='flex flex-col items-center justify-center h-full gap-2'>
-                                {selectedFile && previewUrl ? (
+                                {isProcessing ? (
+                                    <>
+                                        <Loader2 className={cn(
+                                            'animate-spin text-purple-600',
+                                            isMobile ? 'w-6 h-6' : 'w-8 h-8'
+                                        )} />
+                                        <p className={cn('font-medium text-gray-600 text-center px-2', isMobile ? 'text-xs' : 'text-sm')}>
+                                            Processing image...
+                                        </p>
+                                        <p className='text-xs text-gray-500'>Extracting metadata</p>
+                                    </>
+                                ) : selectedFile && previewUrl ? (
                                     <>
                                         <div className={cn(
                                             'rounded-lg overflow-hidden border border-gray-300 bg-gray-100',
