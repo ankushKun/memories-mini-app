@@ -72,11 +72,12 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
 
                 // set datetime if available
                 if (imageDate) {
-                    // the datetime is provided in format "YYYY:MM:DD HH:MM:SS", convert to "YYYY-MM-DD HH:MM:SS"
+                    // datetime can be provided in format "YYYY:MM:DD HH:MM:SS", convert to "YYYY-MM-DD HH:MM:SS"
                     const formattedDate = imageDate.replace(/^(\d{4}):(\d{2}):(\d{2})/, '$1-$2-$3');
-                    // make sure it's a valid date
+                    // make sure it's a valid date & convert to ISO format
                     if (!isNaN(Date.parse(formattedDate))) {
-                        setDatetime(formattedDate);
+                        const dateTimeISO = new Date(formattedDate).toISOString();
+                        setDatetime(dateTimeISO);
                     }
                 }
 

@@ -136,6 +136,11 @@ const LandingPage: React.FC = () => {
                 { name: "Visibility", value: uploadData.isPublic ? "Public" : "Not-Public" }
             ]
 
+            // add Date tag if available
+            if (uploadData.datetime) {
+                extraTags.push({ name: "Date", value: uploadData.datetime })
+            }
+
             const id = await uploadFileTurbo(finalFile, api, extraTags);
             console.log('id', id);
             return id;
