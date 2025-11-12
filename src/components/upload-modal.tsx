@@ -72,9 +72,13 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
 
                 // set datetime if available
                 if (imageDate) {
-                    // the datetime is provided in format "YYYY:MM:DD HH:MM:SS", convert to "YYYY-MM-DD HH:MM:SS"
+                    // datetime can be provided in format "YYYY:MM:DD HH:MM:SS", convert to "YYYY-MM-DD HH:MM:SS"
                     const formattedDate = imageDate.replace(/^(\d{4}):(\d{2}):(\d{2})/, '$1-$2-$3');
-                    setDatetime(formattedDate);
+                    // make sure it's a valid date & convert to ISO format
+                    if (!isNaN(Date.parse(formattedDate))) {
+                        const dateTimeISO = new Date(formattedDate).toISOString();
+                        setDatetime(dateTimeISO);
+                    }
                 }
 
                 // reverse geocode to get location name if GPS data is available
@@ -319,36 +323,37 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
                             disabled={isUploading}
                         />
                     </div>
-                    { 
-                        datetime ?
-                        (
-                            <div className='flex flex-col gap-2'>
-                                <div className={cn('font-extralight font-instrument', isMobile ? 'text-xl' : 'text-3xl')}>
-                                    Date Time <span className='text-red-500'>*</span>
-                                </div>
-                                <Input
-                                    placeholder='YYYY-MM-DD HH:MM:SS'
-                                    className={cn('w-full border border-black/20 rounded-lg', isMobile ? 'p-3 text-sm' : 'p-5')}
-                                    value={datetime}
-                                    onChange={(e) => setDatetime(e.target.value)}
-                                    required
-                                    disabled={isUploading}
-                                />
+                    <div className='flex gap-5'>
+                        <div className='flex flex-1 flex-col gap-2'>
+                            <div className={cn('font-extralight font-instrument', isMobile ? 'text-xl' : 'text-3xl')}>
+                                Location <span className='text-red-500'>*</span>
                             </div>
-                        )
-                        : null }
-                    <div className='flex flex-col gap-2'>
-                        <div className={cn('font-extralight font-instrument', isMobile ? 'text-xl' : 'text-3xl')}>
-                            Location <span className='text-red-500'>*</span>
+                            <Input
+                                placeholder='Anywhere, Earth'
+                                className={cn('w-full border border-black/20 rounded-lg', isMobile ? 'p-3 text-sm' : 'p-5')}
+                                value={location}
+                                onChange={(e) => setLocation(e.target.value)}
+                                required
+                                disabled={isUploading}
+                            />
                         </div>
-                        <Input
-                            placeholder='Anywhere, Earth'
-                            className={cn('w-full border border-black/20 rounded-lg', isMobile ? 'p-3 text-sm' : 'p-5')}
-                            value={location}
-                            onChange={(e) => setLocation(e.target.value)}
-                            required
-                            disabled={isUploading}
-                        />
+                        { 
+                            datetime ?
+                            (
+                                <div className='flex flex-1 flex-col gap-2'>
+                                    <div className={cn('font-extralight font-instrument', isMobile ? 'text-xl' : 'text-3xl')}>
+                                        Date
+                                    </div>
+                                    <Input
+                                        placeholder='YYYY-MM-DD HH:MM:SS'
+                                        className={cn('w-full border border-black/20 rounded-lg', isMobile ? 'p-3 text-sm' : 'p-5')}
+                                        value={datetime}
+                                        disabled
+                                    />
+                                </div>
+                            )
+                            : null
+                        }
                     </div>
                     <div className='flex flex-col gap-2'>
                         <div className={cn('font-extralight font-instrument flex gap-1 justify-between', isMobile ? 'text-xl' : 'text-3xl')}>
@@ -507,7 +512,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
                         date={datetime ? new Date(datetime).toLocaleDateString() : new Date().toLocaleDateString()}
                         imageSrc={previewUrl}
                         layout={orientation}
-                        className='max-h-[80vh]'
+                        className={orientation === 'vertical' ? 'max-h-[80vh]' : 'min-w-2xl'}
                     />
                     <div className='flex items-center justify-center gap-2'>
                         <Button
