@@ -83,27 +83,46 @@ const ImageModal: React.FC<ImageModalProps> = ({ item, isOpen, onClose }) => {
             element.style.top = '0'
             element.style.zIndex = '9999'
 
-            // Wait for fonts and images to fully render (longer delay for mobile)
+            // Wait for fonts to load
             await document.fonts.ready
-            await new Promise(resolve => setTimeout(resolve, 500))
 
-            // Capture the horizontal stamp preview element as a blob
+            // Force font loading by checking specific fonts
+            await Promise.all([
+                document.fonts.load('400 16px "Instrument Serif"'),
+                document.fonts.load('300 16px "Montserrat"'),
+                document.fonts.load('400 16px "Montserrat"'),
+                document.fonts.load('500 16px "Montserrat"')
+            ]).catch(() => {/* ignore font loading errors */ })
+
+            // Ensure all images within the element are loaded
+            const images = element.querySelectorAll('img')
+            await Promise.all(
+                Array.from(images).map(img => {
+                    if (img.complete) return Promise.resolve()
+                    return new Promise((resolve) => {
+                        img.onload = () => resolve(null)
+                        img.onerror = () => resolve(null)
+                    })
+                })
+            )
+
+            // Extra wait for rendering and layout (longer for mobile)
+            await new Promise(resolve => setTimeout(resolve, 800))
+
+            // Capture with optimized settings
             const blob = await domToBlob(element, {
-                scale: 2, // Higher quality (2x resolution)
+                scale: 3, // Higher quality (3x resolution for better text)
                 quality: 1, // Maximum quality
                 type: 'image/png',
                 features: {
-                    // Ensure text is captured properly
                     removeControlCharacter: false,
                 },
                 fetch: {
-                    // Use CORS for loading external resources
                     requestInit: {
                         mode: 'cors',
                         cache: 'force-cache'
                     }
                 },
-                // Debug options - set to true to see what's being captured
                 debug: false,
             })
 
