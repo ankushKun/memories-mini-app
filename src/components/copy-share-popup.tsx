@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Check, Twitter, Copy, X, Send, MessageCircle } from 'lucide-react'
+import { Check, Twitter, Copy, X, Send, MessageCircle, Share2 } from 'lucide-react'
 import { Button } from './ui/button'
 import { Card, CardContent } from './ui/card'
 import { useIsMobile } from '../hooks/use-mobile'
@@ -120,6 +120,42 @@ const CopySharePopup: React.FC<CopySharePopupProps> = ({
         onClose()
     }
 
+    const handleNativeShare = async () => {
+        if (!polaroidBlob) {
+            setStatus('error')
+            setErrorMessage('No image available to share')
+            return
+        }
+
+        try {
+            const filesArray = [
+                new File([polaroidBlob], 'memory.png', {
+                    type: 'image/png',
+                    lastModified: new Date().getTime(),
+                }),
+            ]
+            const shareData = {
+                title: 'Check out this memory!',
+                text: tweetText,
+                files: filesArray,
+            }
+
+            if (navigator.canShare && navigator.canShare(shareData)) {
+                await navigator.share(shareData)
+                onClose()
+            } else {
+                setStatus('error')
+                setErrorMessage('Web Share API is not supported in this browser')
+            }
+        } catch (error) {
+            if ((error as Error).name !== 'AbortError') {
+                console.error('Error sharing:', error)
+                setStatus('error')
+                setErrorMessage('Failed to share image')
+            }
+        }
+    }
+
     // const openTwitter = () => {
     //     const encodedText = encodeURIComponent(tweetText)
     //     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodedText}`
@@ -210,6 +246,16 @@ const CopySharePopup: React.FC<CopySharePopupProps> = ({
                                         <MessageCircle className="w-5 h-5" />
                                         Share on WhatsApp
                                     </Button>
+                                    {/* Native Share Button - Show first if supported */}
+                                    {navigator.share && (
+                                        <Button
+                                            onClick={handleNativeShare}
+                                            className="w-full bg-[#000DFF] border border-white/20 text-white hover:bg-[#000DFF]/90 py-6 text-base font-medium rounded-lg flex items-center justify-center gap-3"
+                                        >
+                                            <Share2 className="w-5 h-5" />
+                                            Share via other
+                                        </Button>
+                                    )}
                                 </div>
 
                                 {/* Info Box */}

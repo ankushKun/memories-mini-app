@@ -183,7 +183,7 @@ const UploadedPage: React.FC = () => {
 
     const getTweetText = () => {
         if (!memoryData) return ''
-        return `Check out this memory "${memoryData.title}" preserved forever! 🌟\n\nView it at: ${window.location.origin}/#/view/${memoryData.id}\n\n`
+        return `Check out this memory "${memoryData.title}" preserved forever! 🌟\n\nView it at: ${window.location.origin}/#/view/${memoryData.id}\n\n(paste the copied image here and remove this text)`
     }
 
     const handleGallery = () => {
@@ -198,7 +198,7 @@ const UploadedPage: React.FC = () => {
         if (!memoryData) return
 
         const url = `${window.location.origin}/#/view/${memoryData.id}`
-        const text = `Check out this memory "${memoryData.title}" preserved forever! 🌟`
+        const text = `Check out this memory "${memoryData.title}" preserved forever! 🌟\n\nView it at: ${window.location.origin}/#/view/${memoryData.id}\n\n(paste the copied image here and remove this text)`
         const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`
 
         window.open(telegramUrl, '_blank')
@@ -208,7 +208,7 @@ const UploadedPage: React.FC = () => {
         if (!memoryData) return
 
         const url = `${window.location.origin}/#/view/${memoryData.id}`
-        const text = `Check out this memory "${memoryData.title}" preserved forever! 🌟\n\nView it at: ${url}\n\n`
+        const text = `Check out this memory "${memoryData.title}" preserved forever! 🌟\n\nView it at: ${window.location.origin}/#/view/${memoryData.id}\n\n(paste the copied image here and remove this text)`
         const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`
 
         window.open(whatsappUrl, '_blank')

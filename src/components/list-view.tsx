@@ -127,7 +127,7 @@ const ListViewComponent: React.FC<ListViewProps> = ({ items, onImageClick }) => 
 
     const getTweetText = () => {
         if (!selectedItem) return ''
-        return `Check out this memory "${selectedItem.title || 'Memory'}" preserved forever on Arweave! 🌟\n\nView it at: ${window.location.origin}/#/view/${selectedItem.id.split("-tile")[0]}\n\n#PermanentOnArweave`
+        return `Check out this memory "${selectedItem.title || 'Memory'}" preserved forever! 🌟\n\nView it at: ${window.location.origin}/#/view/${selectedItem.id.slice(0, 43)}\n\n(paste the copied image here and remove this text)`
     }
 
     // Function to get the index of current item

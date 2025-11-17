@@ -15,7 +15,7 @@ const MEMORIES_QUERY = `query GetMemories($after: String) {
     transactions(
         tags: [
             {name: "App-Name", values: ["Memories-App"]}
-            {name: "App-Version", values: ["1.0.2"]}
+            {name: "App-Version", values: ["1.0.3"]}
             {name: "Visibility", values: ["Public"]}
         ],
         after: $after
@@ -74,7 +74,7 @@ export async function uploadFileTurbo(file: File, api: any, tags: { name: string
         dataItemOpts: {
             tags: [
                 { name: "App-Name", value: "Memories-App" },
-                { name: "App-Version", value: "1.0.2" },
+                { name: "App-Version", value: "1.0.3" },
                 { name: "Content-Type", value: file.type ?? "application/octet-stream" },
                 { name: "Name", value: file.name ?? "unknown" },
                 ...tags

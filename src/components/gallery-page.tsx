@@ -20,7 +20,7 @@ const MEMORIES_QUERY = `query GetMemories($after: String) {
     transactions(
         tags: [
             {name: "App-Name", values: ["Memories-App"]}
-            {name: "App-Version", values: ["1.0.2"]}
+            {name: "App-Version", values: ["1.0.3"]}
             {name: "Visibility", values: ["Public"]}
         ],
         after: $after
@@ -108,7 +108,7 @@ async function uploadFileTurbo(file: File, api: any, tags: { name: string, value
         dataItemOpts: {
             tags: [
                 { name: "App-Name", value: "Memories-App" },
-                { name: "App-Version", value: "1.0.2" },
+                { name: "App-Version", value: "1.0.3" },
                 { name: "Content-Type", value: file.type ?? "application/octet-stream" },
                 { name: "Name", value: file.name ?? "unknown" },
                 ...tags
@@ -670,7 +670,7 @@ const GalleryPage: React.FC = () => {
             {arweaveImageMap.size > 0 && viewMode === 'list' && (
                 <div className="absolute inset-0 pt-24 z-10">
                     <ListViewComponent
-                        items={items}
+                        items={items.filter(item => item.id !== 'upload-button')}
                         onImageClick={handleImageClick}
                     />
                 </div>
@@ -680,7 +680,7 @@ const GalleryPage: React.FC = () => {
             {arweaveImageMap.size > 0 && viewMode === 'card' && (
                 <div className="absolute inset-0 z-10 overflow-visible">
                     <CardView
-                        items={items}
+                        items={items.filter(item => item.id !== 'upload-button')}
                         onImageClick={handleImageClick}
                     />
                 </div>

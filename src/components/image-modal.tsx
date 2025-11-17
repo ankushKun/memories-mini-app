@@ -126,12 +126,13 @@ const ImageModal: React.FC<ImageModalProps> = ({ item, isOpen, onClose }) => {
 
     const getShareUrl = () => {
         if (!item) return ''
-        return `${window.location.origin}/#/view/${item.id.split("-tile")[0]}`
+        console.log(item.id.slice(0, 43))
+        return `${window.location.origin}/#/view/${item.id.slice(0, 43)}`
     }
 
     const getTweetText = () => {
         if (!item) return ''
-        return `Check out this memory "${item.title || 'Memory'}" preserved forever on Arweave! 🌟\n\nView it at: ${getShareUrl()}\n\n#PermanentOnArweave`
+        return `Check out this memory "${item.title || 'Memory'}" preserved forever! 🌟\n\nView it at: ${getShareUrl()}\n\n(paste the copied image here and remove this text)`
     }
 
     if (!shouldRender || !item) return null
