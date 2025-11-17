@@ -21,6 +21,7 @@ const ImageModal: React.FC<ImageModalProps> = ({ item, isOpen, onClose }) => {
     const [isCapturing, setIsCapturing] = useState(false)
     const [capturedBlob, setCapturedBlob] = useState<Blob | null>(null)
     const hiddenHorizontalRef = useRef<HTMLDivElement>(null)
+    const hiddenVerticalRef = useRef<HTMLDivElement>(null)
 
     // Handle animation states
     useEffect(() => {
@@ -63,14 +64,15 @@ const ImageModal: React.FC<ImageModalProps> = ({ item, isOpen, onClose }) => {
     }, [isOpen, onClose])
 
     const captureStampAsImage = async (): Promise<Blob | null> => {
-        // Always capture the horizontal version
-        if (!hiddenHorizontalRef.current) return null
+        // Capture vertical on mobile, horizontal on desktop
+        const elementRef = isMobile ? hiddenVerticalRef : hiddenHorizontalRef
+        if (!elementRef.current) return null
 
         try {
             setIsCapturing(true)
 
-            // Temporarily make the horizontal version visible
-            const element = hiddenHorizontalRef.current
+            // Temporarily make the selected version visible
+            const element = elementRef.current
             const originalVisibility = element.style.visibility
             const originalOpacity = element.style.opacity
 
@@ -81,14 +83,28 @@ const ImageModal: React.FC<ImageModalProps> = ({ item, isOpen, onClose }) => {
             element.style.top = '0'
             element.style.zIndex = '9999'
 
-            // Wait for images to fully render
-            await new Promise(resolve => setTimeout(resolve, 200))
+            // Wait for fonts and images to fully render (longer delay for mobile)
+            await document.fonts.ready
+            await new Promise(resolve => setTimeout(resolve, 500))
 
             // Capture the horizontal stamp preview element as a blob
             const blob = await domToBlob(element, {
                 scale: 2, // Higher quality (2x resolution)
                 quality: 1, // Maximum quality
-                type: 'image/png'
+                type: 'image/png',
+                features: {
+                    // Ensure text is captured properly
+                    removeControlCharacter: false,
+                },
+                fetch: {
+                    // Use CORS for loading external resources
+                    requestInit: {
+                        mode: 'cors',
+                        cache: 'force-cache'
+                    }
+                },
+                // Debug options - set to true to see what's being captured
+                debug: false,
             })
 
             // Hide it again
@@ -100,8 +116,9 @@ const ImageModal: React.FC<ImageModalProps> = ({ item, isOpen, onClose }) => {
         } catch (error) {
             console.error('Error capturing stamp:', error)
             // Make sure to hide it even if there's an error
-            if (hiddenHorizontalRef.current) {
-                const element = hiddenHorizontalRef.current
+            const elementRef = isMobile ? hiddenVerticalRef : hiddenHorizontalRef
+            if (elementRef.current) {
+                const element = elementRef.current
                 element.style.visibility = 'hidden'
                 element.style.opacity = '0'
                 element.style.zIndex = ''
@@ -190,7 +207,7 @@ const ImageModal: React.FC<ImageModalProps> = ({ item, isOpen, onClose }) => {
                 />
             </div>
 
-            {/* Hidden horizontal version for capturing - always horizontal */}
+            {/* Hidden versions for capturing */}
             <div
                 ref={hiddenHorizontalRef}
                 className="absolute left-0 top-0 opacity-0 pointer-events-none"
@@ -207,6 +224,24 @@ const ImageModal: React.FC<ImageModalProps> = ({ item, isOpen, onClose }) => {
                     }).toUpperCase()}
                     imageSrc={item.imageUrl}
                     layout="horizontal"
+                />
+            </div>
+            <div
+                ref={hiddenVerticalRef}
+                className="absolute left-0 top-0 opacity-0 pointer-events-none"
+                style={{ visibility: 'hidden' }}
+            >
+                <StampPreview
+                    headline={item.title || 'Memory'}
+                    location={details.location?.toUpperCase() || 'UNKNOWN LOCATION'}
+                    handle="@memories"
+                    date={details.date.toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
+                    }).toUpperCase()}
+                    imageSrc={item.imageUrl}
+                    layout="vertical"
                 />
             </div>
 
