@@ -216,7 +216,7 @@ const ListViewComponent: React.FC<ListViewProps> = ({ items, onImageClick }) => 
                     })
                 }
             }
-        }, 50) // 50ms debounce for smooth scrolling
+        }, 10) // Reduced debounce for faster selection updates
     }, [items.length])
 
     // Cleanup timeout on unmount
@@ -310,7 +310,6 @@ const ListViewComponent: React.FC<ListViewProps> = ({ items, onImageClick }) => 
         <div className='relative h-full w-screen overflow-clip'>
             {/* Top blur fade */}
             <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-black to-transparent z-10 pointer-events-none" />
-
             <div className={cn('h-full items-center justify-center', isMobile ? "flex flex-col" : "grid grid-cols-2")}>
                 <ScrollArea
                     className={cn("h-full grow overflow-y-scroll overflow-x-clip max-w-screen p-0 [&_[data-radix-scroll-area-scrollbar]]:hidden [&_[data-radix-scroll-area-viewport]]:scrollbar-none [&_[data-radix-scroll-area-viewport]]:[-ms-overflow-style:none] [&_[data-radix-scroll-area-viewport]]:[-webkit-overflow-scrolling:touch]",
