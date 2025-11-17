@@ -157,6 +157,19 @@ const ListViewComponent: React.FC<ListViewProps> = ({ items, onImageClick }) => 
         const blob = await captureStampAsImage(selectedItem)
         if (blob) {
             setCapturedBlob(blob)
+            // Copy image to clipboard immediately
+            try {
+                if (navigator.clipboard && navigator.clipboard.write) {
+                    await navigator.clipboard.write([
+                        new ClipboardItem({
+                            'image/png': blob
+                        })
+                    ])
+                    console.log('Image copied to clipboard')
+                }
+            } catch (error) {
+                console.error('Failed to copy image to clipboard:', error)
+            }
         }
         setIsSharePopupOpen(true)
     }

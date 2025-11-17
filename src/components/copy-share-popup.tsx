@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Check, Twitter, Copy, X, Send, MessageCircle, Share2 } from 'lucide-react'
+import { Check, Twitter, Copy, X, Send, MessageCircle, Share2, Instagram } from 'lucide-react'
 import { Button } from './ui/button'
 import { Card, CardContent } from './ui/card'
 import { useIsMobile } from '../hooks/use-mobile'
@@ -250,10 +250,10 @@ const CopySharePopup: React.FC<CopySharePopupProps> = ({
                                     {navigator.share && (
                                         <Button
                                             onClick={handleNativeShare}
-                                            className="w-full bg-[#000DFF] border border-white/20 text-white hover:bg-[#000DFF]/90 py-6 text-base font-medium rounded-lg flex items-center justify-center gap-3"
+                                            className="w-full  border-[#c13584]/30 bg-[#c13584]/10 hover:bg-[#c13584]/20 border text-white py-6 text-base font-medium rounded-lg flex items-center justify-center gap-3"
                                         >
-                                            <Share2 className="w-5 h-5" />
-                                            Share via other
+                                            <Instagram className="w-5 h-5" />
+                                            Share via Instagram
                                         </Button>
                                     )}
                                 </div>
