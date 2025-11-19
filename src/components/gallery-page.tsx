@@ -14,6 +14,7 @@ import UploadModal, { type UploadData } from './upload-modal'
 import imageCompression from 'browser-image-compression'
 import { ArconnectSigner, TurboFactory } from '@ardrive/turbo-sdk/web'
 import { QuickWallet } from 'quick-wallet'
+import permanent from "@/assets/permanent-light.png"
 
 // GraphQL query for fetching Arweave transactions
 const MEMORIES_QUERY = `query GetMemories($after: String) {
@@ -698,6 +699,12 @@ const GalleryPage: React.FC = () => {
                     </div>
                 </div>
             )}
+
+            {
+                (viewMode === 'grid' || viewMode === 'card') && <div className='absolute bottom-9 left-9 z-50'>
+                    <img src={permanent} className='w-22 opacity-80 rounded' />
+                </div>
+            }
 
             {/* Infinite Canvas - Grid View */}
             {arweaveImageMap.size > 0 && viewMode === 'grid' && (

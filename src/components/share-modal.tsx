@@ -19,7 +19,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ isOpen, onClose, imageId, image
     const handleShareOnX = () => {
         const tweetText = "I just preserved my most cherished memory on Arweave"
         const arweaveUrl = `https://arweave.net/${imageId}`
-        const websiteUrl = "memories.ar.io"
+        const websiteUrl = "onememory.xyz"
 
         const fullTweetText = `${tweetText} at ${arweaveUrl}`
         const encodedText = encodeURIComponent(fullTweetText)

@@ -140,7 +140,7 @@ export const createPolaroidImage = (
                 const brandY = canvasHeight - 15
                 ctx.font = `${fontSize - 6}px Arial, sans-serif`
                 ctx.fillStyle = textColor + '80' // Semi-transparent
-                ctx.fillText('memories.ar.io', textAreaCenter, brandY)
+                ctx.fillText('onememory.xyz', textAreaCenter, brandY)
 
                 // Convert to blob and data URL
                 const mimeType = format === 'jpeg' ? 'image/jpeg' : 'image/png'
@@ -300,7 +300,7 @@ export const createPolaroidFromUrl = (
                 const brandY = canvasHeight - 15
                 ctx.font = `${fontSize - 6}px Arial, sans-serif`
                 ctx.fillStyle = textColor + '80' // Semi-transparent
-                ctx.fillText('memories.ar.io', textAreaCenter, brandY)
+                ctx.fillText('onememory.xyz', textAreaCenter, brandY)
 
                 // Convert to blob and data URL
                 const mimeType = format === 'jpeg' ? 'image/jpeg' : 'image/png'

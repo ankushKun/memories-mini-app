@@ -371,10 +371,10 @@ const LandingPage: React.FC = () => {
                     <div className="space-y-10 self-center">
                         <div className="space-y-6">
                             <h2 className="text-white font-instrument text-5xl md:text-8xl md:leading-[90px]">
-                                Your memories can last forever
+                                Your memories <br />can last forever
                             </h2>
                             <p className="font-montserrat text-white text-xl leading-relaxed">
-                                Save your favourite photo memories forever - for free! <br />Own your memories with Arweave, upload now.
+                                Save your favourite photo memory, forever - for free!<br /> Seriously, no strings attached, own your memories with Arweave,<br /> upload now.
                             </p>
                         </div>
 

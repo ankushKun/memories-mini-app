@@ -123,10 +123,10 @@ export default function StampPreview({
                                 Your memories deserve forever
                             </p>
                             <a
-                                href="https://memories.ar.io"
+                                href="https://onememory.xyz"
                                 className="text-[8px] underline underline-offset-2 tracking-wide uppercase block"
                             >
-                                memories.ar.io
+                                onememory.xyz
                             </a>
                         </div>
 
@@ -168,7 +168,7 @@ export default function StampPreview({
                     {/* Date stamp - Position varies by layout */}
                     {!noText && <div
                         className={cn(
-                            "absolute text-white font-medium tracking-wider z-10",
+                            "absolute text-white font-semibold tracking-wider z-10",
                             layout === 'horizontal'
                                 ? 'right-8 bottom-8 text-base'
                                 : 'right-12 bottom-12 text-lg'

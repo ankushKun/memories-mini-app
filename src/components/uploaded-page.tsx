@@ -353,7 +353,7 @@ const UploadedPage: React.FC = () => {
                         Your memory is now permanent
                     </h1>
                     <p className="text-white/80 font-montserrat text-lg md:text-xl">
-                        Preserved for at least the next 200 years
+                        Preserved for at least the next 200 years - for free!
                     </p>
                 </div>
 
