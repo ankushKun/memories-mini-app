@@ -149,6 +149,8 @@ const GalleryPage: React.FC = () => {
     const [isUploading, setIsUploading] = useState(false)
     const [prevConnected, setPrevConnected] = useState(null)
     const [localStorageMemory, setLocalStorageMemory] = useState<any>(null)
+    const [isDragging, setIsDragging] = useState(false)
+    const [initialFile, setInitialFile] = useState<File | null>(null)
     const canvasRef = useRef<InfiniteCanvasRef>(null)
     const isMobile = useIsMobile()
     const navigate = useNavigate()
@@ -601,11 +603,54 @@ const GalleryPage: React.FC = () => {
 
     // Handle upload button click
     const handleUploadClick = () => {
+        setInitialFile(null)
         setIsUploadModalOpen(true)
     }
 
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault()
+        e.stopPropagation()
+        setIsDragging(true)
+    }
+
+    const handleDragLeave = (e: React.DragEvent) => {
+        e.preventDefault()
+        e.stopPropagation()
+        setIsDragging(false)
+    }
+
+    const handleDrop = (e: React.DragEvent) => {
+        e.preventDefault()
+        e.stopPropagation()
+        setIsDragging(false)
+
+        const files = e.dataTransfer.files
+        if (files && files.length > 0) {
+            const file = files[0]
+            if (file.type.startsWith('image/')) {
+                setInitialFile(file)
+                setIsUploadModalOpen(true)
+            }
+        }
+    }
+
     return (
-        <div className="relative w-full h-screen bg-black">
+        <div
+            className="relative w-full h-screen bg-black"
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+        >
+            {/* Drag overlay */}
+            {isDragging && (
+                <div className="fixed inset-0 z-50 bg-[#000DFF]/20 backdrop-blur-sm flex items-center justify-center pointer-events-none">
+                    <div className="bg-black/90 border-2 border-dashed border-[#000DFF] rounded-2xl px-16 py-12 flex flex-col items-center gap-6">
+                        <Upload className="w-20 h-20 text-[#000DFF]" />
+                        <p className="text-3xl font-semibold text-white">Drop your photo here</p>
+                    </div>
+                </div>
+            )}
+
             <div className='absolute !top-6 !left-6 z-40'>
                 <MemoriesLogo theme='light' />
             </div>
@@ -750,8 +795,12 @@ const GalleryPage: React.FC = () => {
             {/* Upload Modal */}
             <UploadModal
                 isOpen={isUploadModalOpen}
-                onClose={() => setIsUploadModalOpen(false)}
+                onClose={() => {
+                    setIsUploadModalOpen(false)
+                    setInitialFile(null)
+                }}
                 onUpload={handleModalUpload}
+                initialFile={initialFile}
             />
 
         </div >

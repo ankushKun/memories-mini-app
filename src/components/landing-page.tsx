@@ -86,15 +86,15 @@ export async function uploadFileTurbo(file: File, api: any, tags: { name: string
 
 export function MemoriesLogo({ theme = 'light' }: { theme?: 'light' | 'dark' }) {
     return <Link to="/"> <div className={cn("flex items-center drop-shadow shadow-black gap-4", theme === 'dark' ? 'invert' : '')}>
-        <div className="w-10 h-10 md:w-12 md:h-12 flex-shrink-0">
+        <div className="h-9 flex-shrink-0">
             <img src="/logo.svg" alt="Memories" className="w-full h-full" />
         </div>
-        <div className="flex flex-col items-start justify-center relative -top-0.5">
+        {/* <div className="flex flex-col items-start justify-center relative -top-0.5">
             <h1 className="text-white font-instrument text-2xl md:text-4xl leading-none">
-                memories
+                <span className='font-extrabold'>one</span> <span className='!font-light'>moment</span>
             </h1>
             <span className="text-white text-[10px] mt-0.5 font-montserrat font-light">by arweave</span>
-        </div>
+        </div> */}
     </div>
     </Link>
 }
@@ -106,6 +106,8 @@ const LandingPage: React.FC = () => {
     const [isLoadingMemories, setIsLoadingMemories] = useState(true)
     const [prevConnected, setPrevConnected] = useState(null)
     const [startTime, setStartTime] = useState(Date.now())
+    const [isDragging, setIsDragging] = useState(false)
+    const [initialFile, setInitialFile] = useState<File | null>(null)
     const api = QuickWallet
     const navigate = useNavigate()
     const address = QuickWallet.getActiveAddress()
@@ -226,7 +228,35 @@ const LandingPage: React.FC = () => {
     }
 
     const handleUploadClick = () => {
+        setInitialFile(null)
         setIsUploadModalOpen(true)
+    }
+
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault()
+        e.stopPropagation()
+        setIsDragging(true)
+    }
+
+    const handleDragLeave = (e: React.DragEvent) => {
+        e.preventDefault()
+        e.stopPropagation()
+        setIsDragging(false)
+    }
+
+    const handleDrop = (e: React.DragEvent) => {
+        e.preventDefault()
+        e.stopPropagation()
+        setIsDragging(false)
+
+        const files = e.dataTransfer.files
+        if (files && files.length > 0) {
+            const file = files[0]
+            if (file.type.startsWith('image/')) {
+                setInitialFile(file)
+                setIsUploadModalOpen(true)
+            }
+        }
     }
 
     const handleExploreGallery = useCallback(() => {
@@ -312,7 +342,22 @@ const LandingPage: React.FC = () => {
     }, [fetchRandomMemories])
 
     return (
-        <div className="min-h-screen max-h-screen bg-black relative overflow-hidden">
+        <div
+            className="min-h-screen max-h-screen bg-black relative overflow-hidden"
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+        >
+            {/* Drag overlay */}
+            {isDragging && (
+                <div className="fixed inset-0 z-50 bg-[#000DFF]/20 backdrop-blur-sm flex items-center justify-center pointer-events-none">
+                    <div className="bg-black/90 border-2 border-dashed border-[#000DFF] rounded-2xl px-16 py-12 flex flex-col items-center gap-6">
+                        <Upload className="w-20 h-20 text-[#000DFF]" />
+                        <p className="text-3xl font-semibold text-white">Drop your photo here</p>
+                    </div>
+                </div>
+            )}
+
             {/* Header */}
             <div className="relative z-10 p-6">
                 <MemoriesLogo />
@@ -452,8 +497,12 @@ const LandingPage: React.FC = () => {
             {/* Upload Modal */}
             <UploadModal
                 isOpen={isUploadModalOpen}
-                onClose={() => setIsUploadModalOpen(false)}
+                onClose={() => {
+                    setIsUploadModalOpen(false)
+                    setInitialFile(null)
+                }}
                 onUpload={handleModalUpload}
+                initialFile={initialFile}
             />
         </div>
     )

@@ -19,6 +19,7 @@ interface UploadModalProps {
     isOpen: boolean
     onClose: () => void
     onUpload?: (data: UploadData) => void
+    initialFile?: File | null
 }
 
 export interface UploadData {
@@ -30,7 +31,7 @@ export interface UploadData {
     datetime?: string
 }
 
-const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) => {
+const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, initialFile }) => {
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
     const [previewUrl, setPreviewUrl] = useState<string | null>(null)
     const [title, setTitle] = useState('')
@@ -93,7 +94,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
             } catch (error) {
                 console.error('Error reading Exif data or reverse geocoding:', error);
             }
-            
+
 
             // Check if it's a HEIC/HEIF file (by extension or MIME type)
             const isHeic = file.type === 'image/heic' ||
@@ -126,6 +127,13 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
             setPreviewUrl(url)
         }
     }, [])
+
+    // Handle initial file when provided
+    useEffect(() => {
+        if (isOpen && initialFile) {
+            handleNewFile(initialFile)
+        }
+    }, [isOpen, initialFile, handleNewFile])
 
     // Reset uploading state, mobile step, and error when modal closes
     useEffect(() => {
@@ -337,22 +345,22 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload }) 
                                 disabled={isUploading}
                             />
                         </div>
-                        { 
+                        {
                             datetime ?
-                            (
-                                <div className='flex flex-1 flex-col gap-2'>
-                                    <div className={cn('font-extralight font-instrument', isMobile ? 'text-xl' : 'text-3xl')}>
-                                        Date
+                                (
+                                    <div className='flex flex-1 flex-col gap-2'>
+                                        <div className={cn('font-extralight font-instrument', isMobile ? 'text-xl' : 'text-3xl')}>
+                                            Date
+                                        </div>
+                                        <Input
+                                            placeholder='YYYY-MM-DD HH:MM:SS'
+                                            className={cn('w-full border border-black/20 rounded-lg', isMobile ? 'p-3 text-sm' : 'p-5')}
+                                            value={datetime}
+                                            disabled
+                                        />
                                     </div>
-                                    <Input
-                                        placeholder='YYYY-MM-DD HH:MM:SS'
-                                        className={cn('w-full border border-black/20 rounded-lg', isMobile ? 'p-3 text-sm' : 'p-5')}
-                                        value={datetime}
-                                        disabled
-                                    />
-                                </div>
-                            )
-                            : null
+                                )
+                                : null
                         }
                     </div>
                     <div className='flex flex-col gap-2'>
