@@ -343,7 +343,7 @@ const LandingPage: React.FC = () => {
 
     return (
         <div
-            className="min-h-screen max-h-screen bg-black relative overflow-hidden"
+            className="min-h-screen max-h-screen bg-black relative overflow-scroll md:overflow-hidden"
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
@@ -364,7 +364,7 @@ const LandingPage: React.FC = () => {
             </div>
 
             {/* Main Content */}
-            <div className="relative z-10 flex-1 px-6 md:px-16 py-10 md:py-0 md:-top-16">
+            <div className="relative z-10 flex-1 px-6 md:px-16 py-10 md:py-0 md:-top-16 overflow-scroll md:overflow-hidden">
                 {/* Welcome Section - Always Visible */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-center h-[90vh]">
                     {/* Left Content */}
