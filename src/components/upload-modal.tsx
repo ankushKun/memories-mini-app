@@ -4,7 +4,7 @@ import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { useIsMobile } from '../hooks/use-mobile'
 import { MemoriesLogo } from './landing-page'
-import StampPreview from './stamp-preview'
+import StampPreview from './editable-stamp'
 import { cn } from '@/lib/utils'
 import postcardV from '@/assets/postcard-v.svg'
 import postcardH from '@/assets/postcard-h.svg'
@@ -157,6 +157,10 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
         handleNewFile(file)
     }
 
+    const handleReselect = () => {
+        fileInputRef.current?.click()
+    }
+
     const handleDragOver = (event: React.DragEvent) => {
         event.preventDefault()
         setIsDragging(true)
@@ -175,9 +179,23 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
         handleNewFile(file)
     }
 
-    const handleSubmit = async (event: React.FormEvent) => {
-        event.preventDefault()
-        if (!selectedFile || !title.trim() || !handle.trim() || !location.trim()) return
+    const handleSubmit = async (event?: React.FormEvent | React.MouseEvent) => {
+        event?.preventDefault()
+
+        // Define default placeholder values to ignore
+        const defaultTitle = 'Click here to edit'
+        const defaultLocation = 'ANYWHERE, EARTH'
+        const defaultHandle = 'YOU'
+
+        // Check if actual values have been provided (not just defaults)
+        const hasValidTitle = title.trim() && title !== defaultTitle
+        const hasValidLocation = location.trim() && location.toUpperCase() !== defaultLocation
+        const hasValidHandle = handle.trim() && handle !== defaultHandle
+
+        if (!selectedFile || !hasValidTitle || !hasValidLocation || !hasValidHandle) {
+            setUploadError('Please fill in all fields: title, location, and handle')
+            return
+        }
 
         setIsUploading(true)
         setUploadError(null) // Clear any previous errors
@@ -188,7 +206,8 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                 title: title.trim(),
                 location: location.trim(),
                 handle: handle.trim(),
-                isPublic: isPublic
+                isPublic: isPublic,
+                datetime: datetime || undefined
             }
 
             await onUpload?.(uploadData)
@@ -235,55 +254,6 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
 
     if (!isOpen) return null
 
-    // Mobile: Step 2 - Preview and Upload
-    if (isMobile && mobileStep === 2) {
-        return (
-            <div
-                className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex flex-col items-center p-4 gap-4 overflow-y-auto animate-in fade-in duration-300"
-                onClick={handleBackdropClick}
-            >
-                {/* Back button */}
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleBackStep}
-                    disabled={isUploading}
-                    className='self-start rounded-full w-10 h-10 p-0 bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-all'
-                >
-                    <ArrowLeft className='w-5 h-5 text-white' />
-                </Button>
-
-                {/* Preview */}
-                <StampPreview
-                    headline={title}
-                    location={location}
-                    handle={handle}
-                    date={new Date().toLocaleDateString()}
-                    imageSrc={previewUrl}
-                    layout='vertical'
-                    className='max-h-[80vh]'
-                />
-
-                {/* Upload button */}
-                <div className='w-full max-w-md flex flex-col gap-2'>
-                    {uploadError && (
-                        <div className='text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg p-2'>
-                            {uploadError}
-                        </div>
-                    )}
-                    <Button
-                        onClick={handleSubmit}
-                        disabled={isUploading || isProcessing}
-                        className='w-full bg-white text-black rounded-lg disabled:opacity-50 disabled:cursor-not-allowed text-base p-4 font-medium hover:bg-white/90'
-                    >
-                        {isUploading ? 'Uploading...' : 'Upload Memory'}
-                    </Button>
-                    <span className='text-xs text-center text-muted-foreground'>you might receive a signature request for the upload data</span>
-                </div>
-            </div>
-        )
-    }
-
     return (
         <div
             className={cn(
@@ -292,11 +262,18 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
             )}
             onClick={handleBackdropClick}
         >
-            <div className={cn(
+            <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileSelect}
+                className="hidden"
+                disabled={isProcessing}
+            />
+            {/* <div className={cn(
                 "bg-gradient-to-br from-white via-white flex flex-col to-purple-50 w-full shadow-2xl relative rounded-lg animate-in zoom-in-95 duration-300",
                 isMobile ? "p-4 gap-4 max-w-full my-auto" : "p-6 gap-6 max-w-lg max-h-[90vh] overflow-y-auto"
             )}>
-                {/* Header */}
                 <div className=''>
                     <MemoriesLogo theme='dark' />
                 </div>
@@ -439,7 +416,6 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                             </div>
                         </div>
                     </div>
-                    {/* Mobile: Show next button, Desktop: Show upload button with wallet warning */}
                     {isMobile ? (
                         <Button
                             type="button"
@@ -467,62 +443,27 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                         </>
                     )}
                 </form>
-
-                {/* connection info - show on both mobile and desktop in step 1 */}
-                {/* <div className={cn(
-                    'flex items-center justify-between bg-white/50 backdrop-blur-sm border border-gray-200 rounded-2xl transition-all hover:bg-white/80',
-                    isMobile ? 'p-3' : 'p-4'
-                )}>
-                    <div className='flex items-center gap-3 w-full'>
-                        <div className='relative'>
-                            <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-all ${connected
-                                ? 'bg-gradient-to-br from-green-100 to-emerald-100'
-                                : 'bg-gradient-to-br from-gray-100 to-gray-200'
-                                }`}>
-                                <div className={`w-2 h-2 rounded-full transition-all ${connected ? 'bg-green-500' : 'bg-gray-400'
-                                    }`} />
-                            </div>
-                        </div>
-                        {connected && <div className='flex flex-col'>
-                            <span className={cn('text-gray-900 font-semibold', isMobile ? 'text-sm' : 'text-base')}>
-                                Connected
-                            </span>
-                            <span className={cn('text-gray-500 font-medium', isMobile ? 'text-xs' : 'text-sm')}>
-                                {connected && api ? api.id == "wauth-twitter" ? <>@{api.authData?.username}</> : <>@{address.slice(0, 8)}...{address.slice(-4)}</> : <>No wallet connected</>}
-                            </span>
-                        </div>}
-                        {!connected && <div className='flex flex-col w-full'>
-                            <Button className='w-full grow bg-[#000DFF] text-white' onClick={connect}
-                            >Login to upload</Button>
-                        </div>}
-                    </div>
-                    {connected && (
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setOpen(true)}
-                            className='rounded-full w-10 h-10 p-0 hover:bg-gray-100 transition-all group'
-                        >
-                            <ArrowRight className='w-5 h-5 text-gray-600 group-hover:text-gray-900 transition-all group-hover:translate-x-0.5' />
-                        </Button>
-                    )}
-                </div> */}
-            </div>
+            </div> */}
 
             {/* Preview section - desktop only */}
-            {!isMobile && (
-                <div className='flex flex-col gap-5 items-center justify-center'>
-                    <div className='font-extralight text-muted-foreground'>Memory Preview</div>
-                    <StampPreview
-                        headline={title}
-                        location={location}
-                        handle={handle}
-                        date={datetime ? new Date(datetime).toLocaleDateString() : new Date().toLocaleDateString()}
-                        imageSrc={previewUrl}
-                        layout={orientation}
-                        className={orientation === 'vertical' ? 'max-h-[80vh]' : 'min-w-2xl'}
-                    />
-                    <div className='flex items-center justify-center gap-2'>
+            <div className='flex flex-col gap-5 items-center justify-center'>
+                <div className='font-extralight text-muted-foreground text-center'>Memory Preview <br />Click on the title, location and handle to set your own</div>
+                <StampPreview
+                    headline={title}
+                    location={location}
+                    handle={handle}
+                    date={datetime ? new Date(datetime).toLocaleDateString() : new Date().toLocaleDateString()}
+                    imageSrc={previewUrl}
+                    layout={orientation}
+                    className={cn("", orientation === 'vertical' ? 'max-h-[80vh]' : 'min-w-2xl')}
+                    onReselect={handleReselect}
+                    isProcessing={isProcessing}
+                    onHeadlineChange={setTitle}
+                    onLocationChange={setLocation}
+                    onHandleChange={setHandle}
+                />
+                <div className="flex items-center justify-center gap-8">
+                    {!isMobile && <div className='flex items-center justify-center gap-2'>
                         <Button
                             variant='ghost'
                             className={cn('!w-7 rounded-none h-12 p-0', orientation == 'vertical' ? '' : 'opacity-50')}
@@ -549,9 +490,30 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                         >
                             {orientation == "horizontal" && <Check className='w-4 h-4' color='black' />}
                         </Button>
-                    </div>
+                    </div>}
+                    {uploadError && (
+                        <div className='text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2'>
+                            {uploadError}
+                        </div>
+                    )}
+                    <Button
+                        className='!bg-[#000DFF] text-white disabled:opacity-50 disabled:cursor-not-allowed'
+                        onClick={handleSubmit}
+                        disabled={
+                            !selectedFile ||
+                            !title.trim() ||
+                            title === 'Click here to edit' ||
+                            !handle.trim() ||
+                            handle === 'YOU' ||
+                            !location.trim() ||
+                            location.toUpperCase() === 'ANYWHERE, EARTH' ||
+                            isUploading
+                        }
+                    >
+                        {isUploading ? 'Uploading...' : 'Finish'}
+                    </Button>
                 </div>
-            )}
+            </div>
         </div>
     )
 }

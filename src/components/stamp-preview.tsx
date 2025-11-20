@@ -93,7 +93,7 @@ export default function StampPreview({
                         <div className="items-center justify-center">
                             <h1 className={cn(
                                 "font-light leading-tight font-instrument text-left",
-                                size === 'sm' ? 'text-2xl md:text-4xl' : size === 'lg' ? 'text-5xl md:text-8xl' : (layout === 'horizontal' ? 'text-4xl md:text-7xl' : 'text-3xl md:text-6xl')
+                                size === 'sm' ? 'text-2xl md:text-4xl min-h-[2rem] md:min-h-[2.5rem]' : size === 'lg' ? 'text-5xl md:text-8xl min-h-[3.5rem] md:min-h-[5rem]' : (layout === 'horizontal' ? 'text-4xl md:text-7xl min-h-[2.5rem] md:min-h-[4.5rem]' : 'text-3xl md:text-6xl min-h-[2rem] md:min-h-[3.75rem]')
                             )}>
                                 {headline}
                             </h1>
@@ -107,9 +107,9 @@ export default function StampPreview({
                                 <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                     <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
                                 </svg>
-                                <span className="uppercase tracking-wide font-light">{location}</span>
+                                <span className="uppercase tracking-wide font-light inline-block min-w-[8ch]">{location}</span>
                             </div>
-                            <span className="font-light text-xs">{handle}</span>
+                            <span className="font-light text-xs inline-block min-w-[6ch]">{handle}</span>
                         </div>
                     </div>
 

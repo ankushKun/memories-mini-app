@@ -467,11 +467,30 @@ const GalleryPage: React.FC = () => {
         }
     }, [])
 
+    // Handle upload button click
+    const handleUploadClick = useCallback(() => {
+        // Create a file input element
+        const input = document.createElement('input')
+        input.type = 'file'
+        input.accept = 'image/*'
+        input.onchange = (e: Event) => {
+            const target = e.target as HTMLInputElement
+            const files = target.files
+            if (files && files.length > 0) {
+                const file = files[0]
+                setInitialFile(file)
+                setIsUploadModalOpen(true)
+            }
+        }
+        input.click()
+    }, [])
+
     // Handle image click to open modal
     const handleImageClick = useCallback((item: CanvasItem) => {
         // Check if this is the upload button (including tiled versions)
         if (item.id === 'upload-button' || item.id.startsWith('upload-button-tile-')) {
-            setIsUploadModalOpen(true)
+            // Trigger file selection instead of directly opening modal
+            handleUploadClick()
             return
         }
 
@@ -483,7 +502,7 @@ const GalleryPage: React.FC = () => {
         console.log(viewMode)
         if (!viewMode.includes("list"))
             setIsModalOpen(true)
-    }, [viewMode])
+    }, [viewMode, handleUploadClick])
 
     // Handle modal close
     const handleModalClose = useCallback(() => {
@@ -600,12 +619,6 @@ const GalleryPage: React.FC = () => {
         } finally {
             setIsUploading(false)
         }
-    }
-
-    // Handle upload button click
-    const handleUploadClick = () => {
-        setInitialFile(null)
-        setIsUploadModalOpen(true)
     }
 
     const handleDragOver = (e: React.DragEvent) => {

@@ -228,8 +228,20 @@ const LandingPage: React.FC = () => {
     }
 
     const handleUploadClick = () => {
-        setInitialFile(null)
-        setIsUploadModalOpen(true)
+        // Create a file input element
+        const input = document.createElement('input')
+        input.type = 'file'
+        input.accept = 'image/*'
+        input.onchange = (e: Event) => {
+            const target = e.target as HTMLInputElement
+            const files = target.files
+            if (files && files.length > 0) {
+                const file = files[0]
+                setInitialFile(file)
+                setIsUploadModalOpen(true)
+            }
+        }
+        input.click()
     }
 
     const handleDragOver = (e: React.DragEvent) => {
