@@ -105,7 +105,7 @@ const CardView: React.FC<CardViewProps> = ({ items, onImageClick }) => {
                         const isCenterItem = index === current
                         return (
                             <CarouselItem
-                                key={item.id}
+                                key={`${item.id}-D`}
                                 className="pl-4 md:pl-8 basis-full md:basis-1/5"
                             >
                                 <div className="flex items-center justify-center h-full py-12">
