@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react'
-import { ArrowRight, Upload, Image as ImageIcon, ArrowLeft, Check, Loader2, MoveLeft, Compass, X } from 'lucide-react'
+import { ArrowRight, Upload, Image as ImageIcon, ArrowLeft, Check, Loader2, MoveLeft, Compass, X, MapPin } from 'lucide-react'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { useIsMobile } from '../hooks/use-mobile'
@@ -14,7 +14,21 @@ import { Checkbox } from './ui/checkbox'
 import { QuickWallet } from 'quick-wallet'
 import convertHEIC from 'heic-convert/browser'
 import ExifReader from 'exifreader'
-import { Combobox } from './ui/combobox'
+import {
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from './ui/command'
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+    SheetDescription,
+} from './ui/sheet'
 
 interface UploadModalProps {
     isOpen: boolean
@@ -64,6 +78,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
     const [locationOptions, setLocationOptions] = useState<{ value: string; label: string }[]>(LOCATION_OPTIONS)
     const [isLoadingLocations, setIsLoadingLocations] = useState(false)
     const [hasRequestedGeolocation, setHasRequestedGeolocation] = useState(false)
+    const [isLocationSheetOpen, setIsLocationSheetOpen] = useState(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
     const isMobile = useIsMobile()
     // Force vertical orientation on mobile
@@ -494,20 +509,19 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                     </div>
                     <div className={cn('grid gap-2 grid-cols-2')}>
                         <div className='relative'>
-                            <Combobox
-                                value={location}
-                                onValueChange={setLocation}
-                                options={locationOptions}
-                                placeholder='Add Location'
-                                searchPlaceholder='Search location...'
-                                emptyText='No location found.'
-                                className='pl-8 pr-8 py-5 h-10 rounded-lg border border-gray-300 !bg-[#F5F5F5] hover:bg-[#F5F5F5] focus-visible:ring-0 focus-visible:ring-offset-0 w-full text-sm'
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setIsLocationSheetOpen(true)
+                                    requestGeolocation()
+                                }}
                                 disabled={isUploading}
-                                hideChevron
-                                onSearchChange={fetchLocationSuggestions}
-                                isLoading={isLoadingLocations}
-                                onFocus={requestGeolocation}
-                            />
+                                className='flex items-center justify-between w-full pl-8 pr-8 py-5 h-10 rounded-lg border border-gray-300 bg-[#F5F5F5] hover:bg-[#F5F5F5] focus-visible:ring-0 focus-visible:ring-offset-0 text-sm text-left disabled:opacity-50 disabled:cursor-not-allowed'
+                            >
+                                <span className={cn('truncate', location ? 'text-black' : 'text-gray-400')}>
+                                    {location || 'Add Location'}
+                                </span>
+                            </button>
                             <svg className='absolute left-2 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600 pointer-events-none z-10' fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -762,6 +776,55 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                     </div>}
                 </div>
             </div>}
+
+            {/* Location Sheet */}
+            <Sheet open={isLocationSheetOpen} onOpenChange={setIsLocationSheetOpen}>
+                <SheetContent side="bottom" className="bg-white gap-0 h-full">
+                    <SheetHeader className='p-4 pb-2'>
+                        <SheetDescription>
+                            Search for a location or select from nearby places
+                        </SheetDescription>
+                    </SheetHeader>
+                    <div className="p-2 text-black flex-1 overflow-hidden">
+                        <Command className="bg-white border border-gray-300 rounded-lg h-full" shouldFilter={false}>
+                            <CommandInput
+                                placeholder="Search locations..."
+                                className="bg-white text-black"
+                                onValueChange={fetchLocationSuggestions}
+                            />
+                            <CommandList className="bg-white max-h-full">
+                                {isLoadingLocations ? (
+                                    <div className="py-6 text-center text-sm text-gray-500">Loading...</div>
+                                ) : locationOptions.length === 0 ? (
+                                    <CommandEmpty className="text-gray-500">No locations found.</CommandEmpty>
+                                ) : (
+                                    <CommandGroup className="bg-white">
+                                        {locationOptions.map((option) => (
+                                            <CommandItem
+                                                key={option.value}
+                                                value={option.value}
+                                                onSelect={() => {
+                                                    setLocation(option.value)
+                                                    setIsLocationSheetOpen(false)
+                                                }}
+                                                className="cursor-pointer hover:bg-gray-100 text-black"
+                                            >
+                                                <Check
+                                                    className={cn(
+                                                        "mr-2 h-4 w-4",
+                                                        location === option.value ? "opacity-100" : "opacity-0"
+                                                    )}
+                                                />
+                                                {option.label}
+                                            </CommandItem>
+                                        ))}
+                                    </CommandGroup>
+                                )}
+                            </CommandList>
+                        </Command>
+                    </div>
+                </SheetContent>
+            </Sheet>
         </div>
     )
 }

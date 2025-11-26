@@ -128,7 +128,7 @@ export default function StampPreview({
                         <div className={cn(
                             "flex items-center justify-start gap-4"
                         )}>
-                            <div className="flex items-center gap-1 text-xs">
+                            <div className="flex items-start gap-1 text-xs max-w-1/2 w-full">
                                 <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" onClick={() => document.getElementById("location-text")?.focus()}>
                                     <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
                                 </svg>
@@ -140,13 +140,16 @@ export default function StampPreview({
                                     className="uppercase focus:outline-2 outline-blue-400/50 rounded-xs cursor-text tracking-wide font-light inline-block min-w-[8ch]"
                                 >{location}</span>
                             </div>
-                            <span onClick={() => document.getElementById("handle-text")?.focus()} className="font-light  text-xs -mr-4">@</span><span
-                                // contentEditable
-                                id="handle-text"
-                                // suppressContentEditableWarning
-                                onBlur={(e) => onHandleChange?.(e.currentTarget.textContent || '')}
-                                className="font-light rounded-xs text-xs cursor-text focus:outline-2 outline-blue-400/50 inline-block min-w-[6ch]"
-                            >{handle}</span>
+                            <div className="relative max-w-1/2 w-full flex items-start">
+                                <span onClick={() => document.getElementById("handle-text")?.focus()} className="font-light  text-xs">@</span>
+                                <span
+                                    // contentEditable
+                                    id="handle-text"
+                                    // suppressContentEditableWarning
+                                    onBlur={(e) => onHandleChange?.(e.currentTarget.textContent || '')}
+                                    className="font-light rounded-xs text-xs cursor-text focus:outline-2 outline-blue-400/50 inline-block min-w-[6ch]"
+                                >{handle}</span>
+                            </div>
                         </div>
                     </div>
 
