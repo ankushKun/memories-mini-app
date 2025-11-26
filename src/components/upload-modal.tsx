@@ -14,6 +14,7 @@ import { Checkbox } from './ui/checkbox'
 import { QuickWallet } from 'quick-wallet'
 import convertHEIC from 'heic-convert/browser'
 import ExifReader from 'exifreader'
+import { Combobox } from './ui/combobox'
 
 interface UploadModalProps {
     isOpen: boolean
@@ -31,6 +32,22 @@ export interface UploadData {
     datetime?: string
 }
 
+const LOCATION_OPTIONS = [
+    { value: 'Paris, France', label: 'Paris, France' },
+    { value: 'Tokyo, Japan', label: 'Tokyo, Japan' },
+    { value: 'New York, USA', label: 'New York, USA' },
+    { value: 'London, UK', label: 'London, UK' },
+    { value: 'Sydney, Australia', label: 'Sydney, Australia' },
+    { value: 'Barcelona, Spain', label: 'Barcelona, Spain' },
+    { value: 'Rome, Italy', label: 'Rome, Italy' },
+    { value: 'Amsterdam, Netherlands', label: 'Amsterdam, Netherlands' },
+    { value: 'Prague, Czech Republic', label: 'Prague, Czech Republic' },
+    { value: 'Santorini, Greece', label: 'Santorini, Greece' },
+    { value: 'Bali, Indonesia', label: 'Bali, Indonesia' },
+    { value: 'Kyoto, Japan', label: 'Kyoto, Japan' },
+    { value: 'Reykjavik, Iceland', label: 'Reykjavik, Iceland' }
+]
+
 const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, initialFile }) => {
     const [selectedFile, setSelectedFile] = useState<File | null>(null)
     const [previewUrl, setPreviewUrl] = useState<string | null>(null)
@@ -44,6 +61,8 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
     const [isDragging, setIsDragging] = useState(false)
     const [uploadError, setUploadError] = useState<string | null>(null)
     const [mobileStep, setMobileStep] = useState<1 | 2>(1) // 1: input details, 2: preview & upload
+    const [locationOptions, setLocationOptions] = useState<{ value: string; label: string }[]>(LOCATION_OPTIONS)
+    const [isLoadingLocations, setIsLoadingLocations] = useState(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
     const isMobile = useIsMobile()
     // Force vertical orientation on mobile
@@ -53,6 +72,50 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
     // const { setOpen } = useProfileModal()
     const address = QuickWallet.getActiveAddress()
     const api = QuickWallet
+
+    const fetchLocationSuggestions = useMemo(() => {
+        let timeoutId: NodeJS.Timeout
+        return async (query: string) => {
+            clearTimeout(timeoutId)
+
+            if (query.length < 2) {
+                setLocationOptions(LOCATION_OPTIONS)
+                return
+            }
+
+            timeoutId = setTimeout(async () => {
+                setIsLoadingLocations(true)
+                try {
+                    const response = await fetch(
+                        `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=10`
+                    )
+                    const data = await response.json()
+
+                    const suggestions = data.features.map((feature: any) => {
+                        const name = feature.properties.name || feature.properties.city || feature.properties.town || feature.properties.village
+                        const country = feature.properties.country
+                        const state = feature.properties.state
+
+                        let label = name
+                        if (state && state !== name) label += `, ${state}`
+                        if (country) label += `, ${country}`
+
+                        return {
+                            value: label,
+                            label: label
+                        }
+                    }).filter((item: any) => item.value)
+
+                    setLocationOptions(suggestions.length > 0 ? suggestions : LOCATION_OPTIONS)
+                } catch (error) {
+                    console.error('Error fetching locations:', error)
+                    setLocationOptions(LOCATION_OPTIONS)
+                } finally {
+                    setIsLoadingLocations(false)
+                }
+            }, 300)
+        }
+    }, [])
 
     const handleNewFile = useMemo(() => {
         return async (file: File) => {
@@ -318,7 +381,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                         </div> */}
                         <Input
                             placeholder='Name this memory'
-                            className={cn('rounded-none font-montserrat border-0 placeholder:font-light border-b border-black/20 focus-visible:ring-0 focus-visible:ring-offset-0 p-1 h-7', isMobile ? 'text-sm' : '')}
+                            className={cn('rounded-none font-montserrat border-0 placeholder:font-light border-b border-black/20 focus-visible:ring-0 focus-visible:ring-offset-0 p-1 h-7 !text-lg', isMobile ? 'text-sm' : '')}
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
                             required
@@ -327,18 +390,24 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                     </div>
                     <div className={cn('grid gap-2 grid-cols-2')}>
                         <div className='relative'>
-                            <Input
-                                placeholder='Add Location'
-                                className='pl-8 pr-8 py-5 rounded-lg border border-gray-300 !bg-[#F5F5F5] focus-visible:ring-0 focus-visible:ring-offset-0'
+                            <Combobox
                                 value={location}
-                                onChange={(e) => setLocation(e.target.value)}
+                                onValueChange={setLocation}
+                                options={locationOptions}
+                                placeholder='Add Location'
+                                searchPlaceholder='Search location...'
+                                emptyText='No location found.'
+                                className='pl-8 pr-8 py-5 h-10 rounded-lg border border-gray-300 !bg-[#F5F5F5] hover:bg-[#F5F5F5] focus-visible:ring-0 focus-visible:ring-offset-0 w-full text-sm'
                                 disabled={isUploading}
+                                hideChevron
+                                onSearchChange={fetchLocationSuggestions}
+                                isLoading={isLoadingLocations}
                             />
-                            <svg className='absolute left-2 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600' fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className='absolute left-2 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600 pointer-events-none z-10' fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
-                            <svg className='absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400' fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className='absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none z-10' fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                             </svg>
                         </div>
@@ -419,18 +488,18 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                         }
                     </div> */}
                     <div className='flex flex-col gap-2 border-b border-muted-foreground/70 pb-4'>
-                        <div className={cn('font-montserrat flex gap-2 pl-0.5 justify-center items-start text-base')}>
-                            <Compass className='w-7 h-7 mt-1.5' />
-                            <div className='flex flex-col w-full'>
+                        <div className={cn('font-montserrat flex gap-2 pl-0.5 justify-center items-start')}>
+                            <div className='flex flex-col w-full gap-3'>
                                 <div className='flex gap-2 justify-center items-center w-full font-light'>
-                                    Feature in explore
+                                    <Compass className='w-6 h-6' />
+                                    <span className='text-lg'>Feature in explore</span>
                                     <Switch
                                         className='ml-auto relative top-2'
                                         checked={isPublic}
                                         onCheckedChange={setIsPublic}
                                     />
                                 </div>
-                                <div className='text-[10px] text-muted-foreground font-montserrat leading-2.5 tracking-tight'>Your photo memory will be shown alongside other<br /> featured memories by the community</div>
+                                <div className='text-sm pl-0.5 antialiased text-muted-foreground font-montserrat leading-4.5 tracking-tight'>Your photo memory will be shown alongside other<br /> featured memories by the community</div>
                             </div>
                         </div>
                         <input
@@ -512,7 +581,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                             disabled={!selectedFile || !title.trim() || !handle.trim() || !location.trim() || isUploading}
                             className='w-full mt-auto bg-[#000DFF] disabled:bg-gray-500 font-light text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed text-xl p-6'
                         >
-                            {isUploading ? 'Uploading...' : 'Upload'}
+                            {isUploading ? 'Sharing...' : 'Share Memory'}
                         </Button>
 
                     </>
