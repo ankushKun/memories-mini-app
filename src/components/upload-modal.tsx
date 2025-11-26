@@ -275,23 +275,21 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                 "bg-gradient-to-br from-white via-white flex flex-col h-full to-purple-50 w-full shadow-2xl relative rounded-lg",
                 isMobile ? "p-4 gap-4 max-w-full my-auto rounded-none" : "p-6 gap-6 max-w-lg max-h-[90vh] overflow-y-auto rounded-r-none"
             )}>
-                {!isMobile && (
-                    <button
-                        onClick={handleClose}
-                        disabled={isUploading}
-                        className='absolute top-4 right-4 z-50 p-2 rounded-full hover:bg-black/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
-                        aria-label='Close'
-                    >
-                        <X className='w-5 h-5 text-gray-600' />
-                    </button>
-                )}
-                <div className=''>
+                <button
+                    onClick={handleClose}
+                    disabled={isUploading}
+                    className='absolute top-4 right-4 z-50 p-2 rounded-full hover:bg-black/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+                    aria-label='Close'
+                >
+                    <X className='w-5 h-5 text-gray-600' />
+                </button>
+                {/* <div className=''>
                     <MemoriesLogo theme='dark' />
+                </div> */}
+                <div onClick={handleClose}
+                    className='text-muted-foreground flex gap-1 items-center justify-center text-sm cursor-pointer'>
+                    New Permanent Memory
                 </div>
-                {isMobile && <div onClick={handleClose}
-                    className='text-muted-foreground flex gap-1 items-center justify-center mr-auto text-sm cursor-pointer'>
-                    <ArrowLeft className='!w-5 !h-5' /> New Permanent Memory
-                </div>}
 
 
                 <form onSubmit={handleSubmit} className={cn(
@@ -315,12 +313,12 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                     />}
 
                     <div className='flex flex-col gap-2'>
-                        <div className={cn('font-extralight font-instrument', isMobile ? 'text-xl' : 'text-3xl')}>
+                        {/* <div className={cn('font-extralight font-instrument', isMobile ? 'text-xl' : 'text-3xl')}>
                             Title your memory
-                        </div>
+                        </div> */}
                         <Input
                             placeholder='Name this memory'
-                            className={cn('rounded-none border-0 border-b border-black/20 focus-visible:ring-0 focus-visible:ring-offset-0 p-1 h-6', isMobile ? 'text-sm' : '')}
+                            className={cn('rounded-none font-sans border-0 !text-xl border-b border-black/20 focus-visible:ring-0 focus-visible:ring-offset-0 p-1', isMobile ? 'text-sm' : '')}
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
                             required
@@ -423,7 +421,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                         }
                     </div> */}
                     <div className='flex flex-col gap-2'>
-                        <div className={cn('font-extralight font-instrument flex flex-col gap-1 justify-center items-start', isMobile ? 'text-xl' : 'text-3xl')}>
+                        <div className={cn('font-extralight  flex flex-col gap-1 justify-center items-start text-xl font-sans')}>
                             <div className='flex gap-1 justify-center items-center w-full'>
                                 <Compass /> Feature in Explore
                                 {/* <span className='text-red-500'>*</span> */}
@@ -437,7 +435,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                                 <span className='text-sm inline-flex items-center justify-center gap-1'>public memory <Checkbox className={cn('scale-80', isPublic ? '!bg-green-200' : '!bg-gray-200')} checked={isPublic} onClick={() => setIsPublic(!isPublic)} /></span>
                                 <span className='text-[11px] mr-1 text-right'>image will {isPublic ? 'be' : 'not be'} visible in gallery</span>
                             </span> */}
-                            <div className='text-sm text-muted-foreground tracking-wide leading-3.5'>Your photo memory will be shown alongside<br /> other featured memories by the community </div>
+                            <div className='text-xs text-muted-foreground tracking-wide leading-3.5'>Your photo memory will be shown alongside<br /> other featured memories by the community </div>
                         </div>
                         <input
                             ref={fileInputRef}
