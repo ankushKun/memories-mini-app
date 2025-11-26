@@ -4,7 +4,7 @@ import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { useIsMobile } from '../hooks/use-mobile'
 import { MemoriesLogo } from './landing-page'
-import StampPreview from './editable-stamp'
+import StampPreview from './stamp-preview'
 import { cn } from '@/lib/utils'
 import postcardV from '@/assets/postcard-v.svg'
 import postcardH from '@/assets/postcard-h.svg'
@@ -270,7 +270,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                 className="hidden"
                 disabled={isProcessing}
             />
-            {/* <div className={cn(
+            <div className={cn(
                 "bg-gradient-to-br from-white via-white flex flex-col to-purple-50 w-full shadow-2xl relative rounded-lg animate-in zoom-in-95 duration-300",
                 isMobile ? "p-4 gap-4 max-w-full my-auto" : "p-6 gap-6 max-w-lg max-h-[90vh] overflow-y-auto"
             )}>
@@ -443,7 +443,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                         </>
                     )}
                 </form>
-            </div> */}
+            </div>
 
             {/* Preview section - desktop only */}
             <div className='flex flex-col gap-5 items-center justify-center'>
