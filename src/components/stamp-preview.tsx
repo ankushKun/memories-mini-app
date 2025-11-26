@@ -141,7 +141,7 @@ export default function StampPreview({
                                 >{location}</span>
                             </div>
                             <div className="relative max-w-1/2 w-full flex items-start">
-                                <span onClick={() => document.getElementById("handle-text")?.focus()} className="font-light  text-xs"></span>
+                                <span onClick={() => document.getElementById("handle-text")?.focus()} className="font-light  text-xs">{handle.startsWith("@") ? "" : "@"}</span>
                                 <span
                                     // contentEditable
                                     id="handle-text"
