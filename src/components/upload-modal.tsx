@@ -315,9 +315,9 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                     />}
 
                     <div className='flex flex-col gap-2'>
-                        {/* <div className={cn('font-extralight font-instrument', isMobile ? 'text-xl' : 'text-3xl')}>
-                            Title your memory <span className='text-red-500'>*</span>
-                        </div> */}
+                        <div className={cn('font-extralight font-instrument', isMobile ? 'text-xl' : 'text-3xl')}>
+                            Title your memory
+                        </div>
                         <Input
                             placeholder='Name this memory'
                             className={cn('rounded-none border-0 border-b border-black/20 focus-visible:ring-0 focus-visible:ring-offset-0 p-1 h-6', isMobile ? 'text-sm' : '')}
@@ -425,7 +425,8 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                     <div className='flex flex-col gap-2'>
                         <div className={cn('font-extralight font-instrument flex flex-col gap-1 justify-center items-start', isMobile ? 'text-xl' : 'text-3xl')}>
                             <div className='flex gap-1 justify-center items-center w-full'>
-                                <Compass /> Feature in Explore <span className='text-red-500'>*</span>
+                                <Compass /> Feature in Explore
+                                {/* <span className='text-red-500'>*</span> */}
                                 <Switch
                                     className='ml-auto'
                                     checked={isPublic}
