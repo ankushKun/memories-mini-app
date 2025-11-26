@@ -272,7 +272,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                 disabled={isProcessing}
             />
             <div className={cn(
-                "bg-gradient-to-br from-white via-white flex flex-col h-full to-purple-50 w-full shadow-2xl relative rounded-lg",
+                "bg-gradient-to-br from-white via-white flex flex-col h-full to-purple-50 w-full shadow-2xl relative rounded-lg !font-montserrat",
                 isMobile ? "p-4 gap-4 max-w-full my-auto rounded-none" : "p-6 gap-6 max-w-lg max-h-[90vh] overflow-y-auto rounded-r-none"
             )}>
                 <button
@@ -318,7 +318,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                         </div> */}
                         <Input
                             placeholder='Name this memory'
-                            className={cn('rounded-none font-sans border-0 !text-xl border-b border-black/20 focus-visible:ring-0 focus-visible:ring-offset-0 p-1', isMobile ? 'text-sm' : '')}
+                            className={cn('rounded-none font-montserrat border-0 placeholder:font-light border-b border-black/20 focus-visible:ring-0 focus-visible:ring-offset-0 p-1 h-7', isMobile ? 'text-sm' : '')}
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
                             required
@@ -329,7 +329,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                         <div className='relative'>
                             <Input
                                 placeholder='Add Location'
-                                className='pl-8 pr-8 py-5 rounded-lg border border-gray-300 focus-visible:ring-0 focus-visible:ring-offset-0'
+                                className='pl-8 pr-8 py-5 rounded-lg border border-gray-300 !bg-[#F5F5F5] focus-visible:ring-0 focus-visible:ring-offset-0'
                                 value={location}
                                 onChange={(e) => setLocation(e.target.value)}
                                 disabled={isUploading}
@@ -345,7 +345,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                         <div className='relative'>
                             <Input
                                 placeholder='Add Your Handle'
-                                className='pl-8 pr-8 py-5 rounded-lg border border-gray-300 focus-visible:ring-0 focus-visible:ring-offset-0'
+                                className='pl-8 pr-8 py-5 rounded-lg border border-gray-300 !bg-[#F5F5F5] focus-visible:ring-0 focus-visible:ring-offset-0'
                                 value={handle}
                                 onChange={(e) => setHandle(e.target.value)}
                                 disabled={isUploading}
@@ -357,23 +357,21 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                             </svg>
                         </div>
-                        {datetime && (
-                            <div className='relative'>
-                                <Input
-                                    placeholder='Date'
-                                    className='pl-8 pr-8 py-5 rounded-lg border border-gray-300 focus-visible:ring-0 focus-visible:ring-offset-0'
-                                    value={new Date(datetime).toLocaleDateString()}
-                                    onChange={(e) => setDatetime(e.target.value)}
-                                    disabled={isUploading}
-                                />
-                                <svg className='absolute left-2 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600' fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg>
-                                <svg className='absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400' fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                </svg>
-                            </div>
-                        )}
+                        <div className='relative'>
+                            <Input
+                                placeholder='Date'
+                                className='pl-8 pr-8 py-5 rounded-lg border border-gray-300 !bg-[#F5F5F5] focus-visible:ring-0 focus-visible:ring-offset-0'
+                                value={new Date(datetime).toLocaleDateString()}
+                                onChange={(e) => setDatetime(e.target.value)}
+                                disabled={isUploading}
+                            />
+                            <svg className='absolute left-2 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600' fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <svg className='absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400' fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                        </div>
                     </div>
                     {/* <div className='flex flex-col gap-2'>
                         <div className={cn('font-extralight font-instrument', isMobile ? 'text-xl' : 'text-3xl')}>
@@ -420,22 +418,20 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                                 : null
                         }
                     </div> */}
-                    <div className='flex flex-col gap-2'>
-                        <div className={cn('font-extralight  flex flex-col gap-1 justify-center items-start text-xl font-sans')}>
-                            <div className='flex gap-1 justify-center items-center w-full'>
-                                <Compass /> Feature in Explore
-                                {/* <span className='text-red-500'>*</span> */}
-                                <Switch
-                                    className='ml-auto'
-                                    checked={isPublic}
-                                    onCheckedChange={setIsPublic}
-                                />
+                    <div className='flex flex-col gap-2 border-b border-muted-foreground/70 pb-4'>
+                        <div className={cn('font-montserrat flex gap-2 pl-0.5 justify-center items-start text-base')}>
+                            <Compass className='w-7 h-7 mt-1.5' />
+                            <div className='flex flex-col w-full'>
+                                <div className='flex gap-2 justify-center items-center w-full font-light'>
+                                    Feature in explore
+                                    <Switch
+                                        className='ml-auto relative top-2'
+                                        checked={isPublic}
+                                        onCheckedChange={setIsPublic}
+                                    />
+                                </div>
+                                <div className='text-[10px] text-muted-foreground font-montserrat leading-2.5 tracking-tight'>Your photo memory will be shown alongside other<br /> featured memories by the community</div>
                             </div>
-                            {/* <span className='flex flex-col gap-0 items-end max-w-1/3'>
-                                <span className='text-sm inline-flex items-center justify-center gap-1'>public memory <Checkbox className={cn('scale-80', isPublic ? '!bg-green-200' : '!bg-gray-200')} checked={isPublic} onClick={() => setIsPublic(!isPublic)} /></span>
-                                <span className='text-[11px] mr-1 text-right'>image will {isPublic ? 'be' : 'not be'} visible in gallery</span>
-                            </span> */}
-                            <div className='text-xs text-muted-foreground tracking-wide leading-3.5'>Your photo memory will be shown alongside<br /> other featured memories by the community </div>
                         </div>
                         <input
                             ref={fileInputRef}
