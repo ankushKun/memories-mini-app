@@ -445,16 +445,16 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                 <button
                     onClick={handleClose}
                     disabled={isUploading}
-                    className='absolute top-4 right-4 z-50 p-2 rounded-full hover:bg-black/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+                    className='absolute top-4 left-4 z-50 p-2 rounded-full hover:bg-black/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
                     aria-label='Close'
                 >
-                    <X className='w-5 h-5 text-gray-600' />
+                    <ArrowLeft className='!w-5 !h-5 text-black/50' />
                 </button>
                 {/* <div className=''>
                     <MemoriesLogo theme='dark' />
                 </div> */}
-                <div
-                    className='text-muted-foreground flex gap-1 items-center justify-center text-sm'>
+                <div onClick={handleClose} className='text-muted-foreground flex gap-1 items-center justify-center text-sm'>
+
                     New Permanent Memory
                 </div>
 
@@ -531,7 +531,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                             </svg>
                         </div>
-                        <div className='relative'>
+                        {/* <div className='relative'>
                             <Input
                                 placeholder='Date'
                                 className='pl-8 pr-8 py-5 rounded-lg border border-gray-300 !bg-[#F5F5F5] focus-visible:ring-0 focus-visible:ring-offset-0'
@@ -545,7 +545,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                             <svg className='absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400' fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                             </svg>
-                        </div>
+                        </div> */}
                     </div>
                     {/* <div className='flex flex-col gap-2'>
                         <div className={cn('font-extralight font-instrument', isMobile ? 'text-xl' : 'text-3xl')}>
@@ -594,12 +594,12 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                     </div> */}
                     <div className='flex flex-col gap-2 border-b border-muted-foreground/70 pb-4'>
                         <div className={cn('font-montserrat flex gap-2 pl-0.5 justify-center items-start')}>
-                            <div className='flex flex-col w-full gap-3'>
+                            <div className='flex flex-col w-full gap-1.5'>
                                 <div className='flex gap-2 justify-center items-center w-full font-light'>
-                                    <Compass className='w-6 h-6' />
+                                    <Compass className='w-4.5 h-4.5' />
                                     <span className='text-lg'>Feature in explore</span>
                                     <Switch
-                                        className='ml-auto relative top-2'
+                                        className='ml-auto relative scale-115 mr-1'
                                         checked={isPublic}
                                         onCheckedChange={setIsPublic}
                                     />
