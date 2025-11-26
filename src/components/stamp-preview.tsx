@@ -49,7 +49,7 @@ export default function StampPreview({
         handle = 'Your Handle'
     }
     if (!handle.startsWith('@')) {
-        handle = `${handle}`
+        handle = `${handle}`.replace('@', '')
     }
     if (!headline) {
         headline = 'Your Memory'
@@ -141,7 +141,7 @@ export default function StampPreview({
                                 >{location}</span>
                             </div>
                             <div className="relative max-w-1/2 w-full flex items-start">
-                                <span onClick={() => document.getElementById("handle-text")?.focus()} className="font-light  text-xs">@</span>
+                                <span onClick={() => document.getElementById("handle-text")?.focus()} className="font-light  text-xs"></span>
                                 <span
                                     // contentEditable
                                     id="handle-text"

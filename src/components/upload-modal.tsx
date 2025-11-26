@@ -610,7 +610,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                         <div className={cn('font-montserrat flex gap-2 pl-0.5 justify-center items-start')}>
                             <div className='flex flex-col w-full gap-1.5'>
                                 <div className='flex gap-2 justify-center items-center w-full font-light'>
-                                    <Compass className='w-4.5 h-4.5' />
+                                    <Compass className='w-4.5 h-4.5 text-gray-600' />
                                     <span className='text-lg'>Feature in explore</span>
                                     <Switch
                                         className='ml-auto relative scale-115 mr-1'
