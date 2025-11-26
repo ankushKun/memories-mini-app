@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react'
-import { ArrowRight, Upload, Image as ImageIcon, ArrowLeft, Check, Loader2 } from 'lucide-react'
+import { ArrowRight, Upload, Image as ImageIcon, ArrowLeft, Check, Loader2, MoveLeft, Compass, X } from 'lucide-react'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { useIsMobile } from '../hooks/use-mobile'
@@ -183,9 +183,9 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
         event?.preventDefault()
 
         // Define default placeholder values to ignore
-        const defaultTitle = 'Click here to edit'
-        const defaultLocation = 'ANYWHERE, EARTH'
-        const defaultHandle = 'YOU'
+        const defaultTitle = 'Your Memory'
+        const defaultLocation = 'Memory Location'
+        const defaultHandle = 'Your Handle'
 
         // Check if actual values have been provided (not just defaults)
         const hasValidTitle = title.trim() && title !== defaultTitle
@@ -237,7 +237,8 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
     }
 
     const handleBackdropClick = (e: React.MouseEvent) => {
-        if (e.target === e.currentTarget && !isUploading) {
+        // Only allow backdrop click to close on mobile
+        if (e.target === e.currentTarget && !isUploading && isMobile) {
             handleClose()
         }
     }
@@ -257,8 +258,8 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
     return (
         <div
             className={cn(
-                "fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center animate-in fade-in duration-300",
-                isMobile ? "p-4 flex-col overflow-y-auto" : "justify-center p-8 gap-20"
+                "fixed inset-0 h-full bg-black/60 backdrop-blur-md z-50 flex items-center gap-0",
+                isMobile ? "flex-col overflow-y-auto" : "justify-center"
             )}
             onClick={handleBackdropClick}
         >
@@ -267,35 +268,116 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                 type="file"
                 accept="image/*"
                 onChange={handleFileSelect}
-                className="hidden"
+                className="hidden absolute"
                 disabled={isProcessing}
             />
             <div className={cn(
-                "bg-gradient-to-br from-white via-white flex flex-col to-purple-50 w-full shadow-2xl relative rounded-lg animate-in zoom-in-95 duration-300",
-                isMobile ? "p-4 gap-4 max-w-full my-auto" : "p-6 gap-6 max-w-lg max-h-[90vh] overflow-y-auto"
+                "bg-gradient-to-br from-white via-white flex flex-col h-full to-purple-50 w-full shadow-2xl relative rounded-lg",
+                isMobile ? "p-4 gap-4 max-w-full my-auto rounded-none" : "p-6 gap-6 max-w-lg max-h-[90vh] overflow-y-auto rounded-r-none"
             )}>
+                {!isMobile && (
+                    <button
+                        onClick={handleClose}
+                        disabled={isUploading}
+                        className='absolute top-4 right-4 z-50 p-2 rounded-full hover:bg-black/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed'
+                        aria-label='Close'
+                    >
+                        <X className='w-5 h-5 text-gray-600' />
+                    </button>
+                )}
                 <div className=''>
                     <MemoriesLogo theme='dark' />
                 </div>
+                {isMobile && <div onClick={handleClose}
+                    className='text-muted-foreground flex gap-1 items-center justify-center mr-auto text-sm cursor-pointer'>
+                    <ArrowLeft className='!w-5 !h-5' /> New Permanent Memory
+                </div>}
+
 
                 <form onSubmit={handleSubmit} className={cn(
-                    'rounded-lg border border-black/20 text-black flex flex-col',
-                    isMobile ? 'p-4 gap-4' : 'p-6 gap-6'
+                    'rounded-lg border-0 h-full border-black/20 text-black flex flex-col',
+                    isMobile ? 'p-0 gap-4' : 'p-6 gap-6'
                 )}>
+
+                    {isMobile && <StampPreview
+                        headline={title}
+                        location={location}
+                        handle={handle}
+                        noText
+                        date={datetime ? new Date(datetime).toLocaleDateString() : new Date().toLocaleDateString()}
+                        imageSrc={previewUrl}
+                        layout={orientation}
+                        onReselect={handleReselect}
+                        isProcessing={isProcessing}
+                        onHeadlineChange={setTitle}
+                        onLocationChange={setLocation}
+                        onHandleChange={setHandle}
+                    />}
+
                     <div className='flex flex-col gap-2'>
-                        <div className={cn('font-extralight font-instrument', isMobile ? 'text-xl' : 'text-3xl')}>
+                        {/* <div className={cn('font-extralight font-instrument', isMobile ? 'text-xl' : 'text-3xl')}>
                             Title your memory <span className='text-red-500'>*</span>
-                        </div>
+                        </div> */}
                         <Input
-                            placeholder='First vacation with the fam'
-                            className={cn('w-full border border-black/20 rounded-lg', isMobile ? 'p-3 text-sm' : 'p-5')}
+                            placeholder='Name this memory'
+                            className={cn('rounded-none border-0 border-b border-black/20 focus-visible:ring-0 focus-visible:ring-offset-0 p-1 h-6', isMobile ? 'text-sm' : '')}
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
                             required
                             disabled={isUploading}
                         />
                     </div>
-                    <div className='flex flex-col gap-2'>
+                    <div className={cn('grid gap-2 grid-cols-2')}>
+                        <div className='relative'>
+                            <Input
+                                placeholder='Add Location'
+                                className='pl-8 pr-8 py-5 rounded-lg border border-gray-300 focus-visible:ring-0 focus-visible:ring-offset-0'
+                                value={location}
+                                onChange={(e) => setLocation(e.target.value)}
+                                disabled={isUploading}
+                            />
+                            <svg className='absolute left-2 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600' fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <svg className='absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400' fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                        </div>
+                        <div className='relative'>
+                            <Input
+                                placeholder='Add Your Handle'
+                                className='pl-8 pr-8 py-5 rounded-lg border border-gray-300 focus-visible:ring-0 focus-visible:ring-offset-0'
+                                value={handle}
+                                onChange={(e) => setHandle(e.target.value)}
+                                disabled={isUploading}
+                            />
+                            <svg className='absolute left-2 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600' fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            <svg className='absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400' fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                        </div>
+                        {datetime && (
+                            <div className='relative'>
+                                <Input
+                                    placeholder='Date'
+                                    className='pl-8 pr-8 py-5 rounded-lg border border-gray-300 focus-visible:ring-0 focus-visible:ring-offset-0'
+                                    value={new Date(datetime).toLocaleDateString()}
+                                    onChange={(e) => setDatetime(e.target.value)}
+                                    disabled={isUploading}
+                                />
+                                <svg className='absolute left-2 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600' fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                <svg className='absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400' fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                            </div>
+                        )}
+                    </div>
+                    {/* <div className='flex flex-col gap-2'>
                         <div className={cn('font-extralight font-instrument', isMobile ? 'text-xl' : 'text-3xl')}>
                             Twitter handle <span className='text-red-500'>*</span>
                         </div>
@@ -307,8 +389,8 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                             required
                             disabled={isUploading}
                         />
-                    </div>
-                    <div className='flex gap-5'>
+                    </div> */}
+                    {/* <div className='flex gap-5'>
                         <div className='flex flex-1 flex-col gap-2'>
                             <div className={cn('font-extralight font-instrument', isMobile ? 'text-xl' : 'text-3xl')}>
                                 Location <span className='text-red-500'>*</span>
@@ -339,16 +421,32 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                                 )
                                 : null
                         }
-                    </div>
+                    </div> */}
                     <div className='flex flex-col gap-2'>
-                        <div className={cn('font-extralight font-instrument flex gap-1 justify-between', isMobile ? 'text-xl' : 'text-3xl')}>
-                            <span>Upload your memory <span className='text-red-500'>*</span></span>
-                            <span className='flex flex-col gap-0 items-end max-w-1/3'>
+                        <div className={cn('font-extralight font-instrument flex flex-col gap-1 justify-center items-start', isMobile ? 'text-xl' : 'text-3xl')}>
+                            <div className='flex gap-1 justify-center items-center w-full'>
+                                <Compass /> Feature in Explore <span className='text-red-500'>*</span>
+                                <Switch
+                                    className='ml-auto'
+                                    checked={isPublic}
+                                    onCheckedChange={setIsPublic}
+                                />
+                            </div>
+                            {/* <span className='flex flex-col gap-0 items-end max-w-1/3'>
                                 <span className='text-sm inline-flex items-center justify-center gap-1'>public memory <Checkbox className={cn('scale-80', isPublic ? '!bg-green-200' : '!bg-gray-200')} checked={isPublic} onClick={() => setIsPublic(!isPublic)} /></span>
                                 <span className='text-[11px] mr-1 text-right'>image will {isPublic ? 'be' : 'not be'} visible in gallery</span>
-                            </span>
+                            </span> */}
+                            <div className='text-sm text-muted-foreground tracking-wide leading-3.5'>Your photo memory will be shown alongside<br /> other featured memories by the community </div>
                         </div>
-                        <div
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileSelect}
+                            className="hidden"
+                            disabled={isProcessing}
+                        />
+                        {/* <div
                             className={cn(
                                 'w-full border-2 border-dashed rounded-lg transition-all',
                                 isMobile ? 'h-32 p-3' : 'h-40 p-5',
@@ -365,14 +463,6 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                             onDrop={!isUploading && !isProcessing ? handleDrop : undefined}
                             onClick={!isUploading && !isProcessing ? () => fileInputRef.current?.click() : undefined}
                         >
-                            <input
-                                ref={fileInputRef}
-                                type="file"
-                                accept="image/*"
-                                onChange={handleFileSelect}
-                                className="hidden"
-                                disabled={isProcessing}
-                            />
                             <div className='flex flex-col items-center justify-center h-full gap-2'>
                                 {isProcessing ? (
                                     <>
@@ -414,9 +504,24 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                                     </>
                                 )}
                             </div>
-                        </div>
+                        </div> */}
                     </div>
-                    {isMobile ? (
+                    {uploadError && (
+                        <div className='text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-3'>
+                            {uploadError}
+                        </div>
+                    )}
+                    <>
+                        <Button
+                            type="submit"
+                            disabled={!selectedFile || !title.trim() || !handle.trim() || !location.trim() || isUploading}
+                            className='w-full mt-auto bg-[#000DFF] disabled:bg-gray-500 font-light text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed text-xl p-6'
+                        >
+                            {isUploading ? 'Uploading...' : 'Upload'}
+                        </Button>
+
+                    </>
+                    {/* {isMobile ? (
                         <Button
                             type="button"
                             onClick={handleNextStep}
@@ -427,11 +532,6 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                         </Button>
                     ) : (
                         <>
-                            {uploadError && (
-                                <div className='text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-3'>
-                                    {uploadError}
-                                </div>
-                            )}
                             <Button
                                 type="submit"
                                 disabled={!selectedFile || !title.trim() || !handle.trim() || !location.trim() || isUploading}
@@ -441,13 +541,13 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                             </Button>
 
                         </>
-                    )}
+                    )} */}
                 </form>
             </div>
 
             {/* Preview section - desktop only */}
-            <div className='flex flex-col gap-5 items-center justify-center'>
-                <div className='font-extralight text-muted-foreground text-center'>Memory Preview <br />Click on the title, location and handle to set your own</div>
+            {!isMobile && <div className='flex flex-col relative gap-0 items-center justify-center bg-[#1E1E1E] rounded-r-lg !max-h-[90vh] h-full'>
+                <p className='absolute top-4 text-muted-foreground'>Preview</p>
                 <StampPreview
                     headline={title}
                     location={location}
@@ -455,7 +555,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                     date={datetime ? new Date(datetime).toLocaleDateString() : new Date().toLocaleDateString()}
                     imageSrc={previewUrl}
                     layout={orientation}
-                    className={cn("", orientation === 'vertical' ? 'max-h-[80vh]' : 'min-w-2xl')}
+                    className={cn("scale-90", orientation === 'vertical' ? 'max-h-[80vh]' : 'min-w-2xl')}
                     onReselect={handleReselect}
                     isProcessing={isProcessing}
                     onHeadlineChange={setTitle}
@@ -491,32 +591,28 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                             {orientation == "horizontal" && <Check className='w-4 h-4' color='black' />}
                         </Button>
                     </div>}
-                    {uploadError && (
-                        <div className='text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2'>
-                            {uploadError}
-                        </div>
-                    )}
-                    <Button
-                        className='!bg-[#000DFF] text-white disabled:opacity-50 disabled:cursor-not-allowed'
-                        onClick={handleSubmit}
-                        disabled={
-                            !selectedFile ||
-                            !title.trim() ||
-                            title === 'Click here to edit' ||
-                            !handle.trim() ||
-                            handle === 'YOU' ||
-                            !location.trim() ||
-                            location.toUpperCase() === 'ANYWHERE, EARTH' ||
-                            isUploading
-                        }
-                    >
-                        {isUploading ? 'Uploading...' : 'Finish'}
-                    </Button>
                 </div>
-            </div>
+            </div>}
         </div>
     )
 }
 
 export default UploadModal
 
+
+{/* <Button
+    className='!bg-[#000DFF] text-white disabled:opacity-50 disabled:cursor-not-allowed'
+    onClick={handleSubmit}
+    disabled={
+        !selectedFile ||
+        !title.trim() ||
+        title === 'Click here to edit' ||
+        !handle.trim() ||
+        handle === 'YOU' ||
+        !location.trim() ||
+        location.toUpperCase() === 'ANYWHERE, EARTH' ||
+        isUploading
+    }
+>
+    {isUploading ? 'Uploading...' : 'Finish'}
+</Button> */}

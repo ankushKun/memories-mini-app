@@ -43,19 +43,19 @@ export default function StampPreview({
     isProcessing = false,
     onHeadlineChange,
     onLocationChange,
-    onHandleChange
+    onHandleChange,
 }: StampPreviewProps) {
     if (!handle) {
-        handle = 'YOU'
+        handle = 'Your Handle'
     }
     if (!handle.startsWith('@')) {
         handle = `${handle}`
     }
     if (!headline) {
-        headline = 'Click here to edit'
+        headline = 'Your Memory'
     }
     if (!location) {
-        location = 'ANYWHERE, EARTH'
+        location = 'Memory Location'
     }
     if (!date) {
         date = new Date().toLocaleDateString()
@@ -77,7 +77,8 @@ export default function StampPreview({
     return (
         <div
             className={cn(`relative text-black overflow-clip`,
-                noText ? 'aspect-[1/1] w-[min(90vw,theme(maxWidth.2xl))]' : layout === 'horizontal' ? 'aspect-[1.66/1] w-[min(90vw,theme(maxWidth.5xl))]' : 'aspect-[1/1.66] w-[min(90vw,theme(maxWidth.lg))]',
+                noText ? 'aspect-[1/1]' : layout === 'horizontal' ? 'aspect-[1.66/1]' : 'aspect-[1/1.66]',
+                !className?.includes('w-') && (noText ? 'w-[min(90vw,theme(maxWidth.2xl))]' : layout === 'horizontal' ? 'w-[min(90vw,theme(maxWidth.5xl))]' : 'w-[min(90vw,theme(maxWidth.lg))]'),
                 className
             )}
             style={{
@@ -199,13 +200,24 @@ export default function StampPreview({
                                 draggable={false}
                             />
                             {onReselect && (
-                                <div
-                                    className="absolute inset-0 bg-black/60 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center gap-3 cursor-pointer z-50"
-                                    onClick={onReselect}
-                                >
-                                    <Upload className="w-12 h-12 text-white" />
-                                    <p className="text-white text-lg font-medium">Select different image</p>
-                                </div>
+                                <>
+                                    <div
+                                        className={cn(
+                                            "absolute bg-black/30 border border-white backdrop-blur-sm rounded-full p-3 cursor-pointer z-50 hover:bg-black/80 transition-colors",
+                                            noText ? "top-10 left-8" : "top-7 left-14"
+                                        )}
+                                        onClick={onReselect}
+                                    >
+                                        <ImageUp className="w-6 h-6 text-white" />
+                                    </div>
+                                    <div
+                                        className="absolute inset-0 bg-black/60 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center gap-3 cursor-pointer z-40"
+                                        onClick={onReselect}
+                                    >
+                                        <Upload className="w-12 h-12 text-white" />
+                                        <p className="text-white text-lg font-medium">Select different image</p>
+                                    </div>
+                                </>
                             )}
                         </>
                     ) : (
