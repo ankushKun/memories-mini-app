@@ -30,6 +30,7 @@ interface ComboboxProps {
   hideChevron?: boolean
   onSearchChange?: (search: string) => void
   isLoading?: boolean
+  onFocus?: () => void
 }
 
 export function Combobox({
@@ -44,11 +45,19 @@ export function Combobox({
   hideChevron = false,
   onSearchChange,
   isLoading = false,
+  onFocus,
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
 
+  const handleOpenChange = (newOpen: boolean) => {
+    setOpen(newOpen)
+    if (newOpen && onFocus) {
+      onFocus()
+    }
+  }
+
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <button
           role="combobox"

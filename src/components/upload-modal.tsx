@@ -63,6 +63,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
     const [mobileStep, setMobileStep] = useState<1 | 2>(1) // 1: input details, 2: preview & upload
     const [locationOptions, setLocationOptions] = useState<{ value: string; label: string }[]>(LOCATION_OPTIONS)
     const [isLoadingLocations, setIsLoadingLocations] = useState(false)
+    const [hasRequestedGeolocation, setHasRequestedGeolocation] = useState(false)
     const fileInputRef = useRef<HTMLInputElement>(null)
     const isMobile = useIsMobile()
     // Force vertical orientation on mobile
@@ -72,6 +73,94 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
     // const { setOpen } = useProfileModal()
     const address = QuickWallet.getActiveAddress()
     const api = QuickWallet
+
+    const fetchNearbyLocations = async (lat: number, lon: number) => {
+        setIsLoadingLocations(true)
+        try {
+            const response = await fetch(
+                `https://photon.komoot.io/reverse?lat=${lat}&lon=${lon}&limit=10`
+            )
+            const data = await response.json()
+
+            const suggestions = data.features.map((feature: any) => {
+                const name = feature.properties.name || feature.properties.city || feature.properties.town || feature.properties.village
+                const country = feature.properties.country
+                const state = feature.properties.state
+
+                let label = name
+                if (state && state !== name) label += `, ${state}`
+                if (country) label += `, ${country}`
+
+                // Calculate distance from user's location
+                const featureLat = feature.geometry.coordinates[1]
+                const featureLon = feature.geometry.coordinates[0]
+                const distance = Math.sqrt(
+                    Math.pow(lat - featureLat, 2) + Math.pow(lon - featureLon, 2)
+                )
+
+                return {
+                    value: label,
+                    label: label,
+                    distance
+                }
+            }).filter((item: any) => item.value)
+                .sort((a: any, b: any) => a.distance - b.distance)
+
+            // Remove duplicates from nearby locations
+            const seen = new Set<string>()
+            const uniqueSuggestions = suggestions
+                .filter((item: any) => {
+                    const normalizedValue = item.value.toLowerCase().trim()
+                    if (seen.has(normalizedValue)) {
+                        return false
+                    }
+                    seen.add(normalizedValue)
+                    return true
+                })
+                .map(({ value, label }: any) => ({ value, label }))
+
+            setLocationOptions(uniqueSuggestions.length > 0 ? uniqueSuggestions : LOCATION_OPTIONS)
+        } catch (error) {
+            console.error('Error fetching nearby locations:', error)
+            setLocationOptions(LOCATION_OPTIONS)
+        } finally {
+            setIsLoadingLocations(false)
+        }
+    }
+
+    const requestGeolocation = async () => {
+        if (hasRequestedGeolocation) return
+
+        setHasRequestedGeolocation(true)
+
+        if (!navigator.geolocation) {
+            console.log('Geolocation not supported')
+            return
+        }
+
+        try {
+            setIsLoadingLocations(true)
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords
+                    fetchNearbyLocations(latitude, longitude)
+                },
+                (error) => {
+                    console.error('Geolocation error:', error)
+                    setIsLoadingLocations(false)
+                    setLocationOptions(LOCATION_OPTIONS)
+                },
+                {
+                    timeout: 10000,
+                    enableHighAccuracy: false
+                }
+            )
+        } catch (error) {
+            console.error('Error requesting geolocation:', error)
+            setIsLoadingLocations(false)
+            setLocationOptions(LOCATION_OPTIONS)
+        }
+    }
 
     const fetchLocationSuggestions = useMemo(() => {
         let timeoutId: NodeJS.Timeout
@@ -106,10 +195,25 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                         }
                     }).filter((item: any) => item.value)
 
-                    setLocationOptions(suggestions.length > 0 ? suggestions : LOCATION_OPTIONS)
+                    // Add user's typed text as first option
+                    const customOption = { value: query, label: query }
+
+                    // Remove duplicates by tracking seen values
+                    const seen = new Set<string>()
+                    const uniqueSuggestions = [customOption, ...suggestions].filter((item) => {
+                        const normalizedValue = item.value.toLowerCase().trim()
+                        if (seen.has(normalizedValue)) {
+                            return false
+                        }
+                        seen.add(normalizedValue)
+                        return true
+                    })
+
+                    setLocationOptions(uniqueSuggestions.length > 0 ? uniqueSuggestions : [customOption, ...LOCATION_OPTIONS])
                 } catch (error) {
                     console.error('Error fetching locations:', error)
-                    setLocationOptions(LOCATION_OPTIONS)
+                    // On error, still show user's typed text as first option
+                    setLocationOptions([{ value: query, label: query }, ...LOCATION_OPTIONS])
                 } finally {
                     setIsLoadingLocations(false)
                 }
@@ -349,8 +453,8 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                 {/* <div className=''>
                     <MemoriesLogo theme='dark' />
                 </div> */}
-                <div onClick={handleClose}
-                    className='text-muted-foreground flex gap-1 items-center justify-center text-sm cursor-pointer'>
+                <div
+                    className='text-muted-foreground flex gap-1 items-center justify-center text-sm'>
                     New Permanent Memory
                 </div>
 
@@ -402,6 +506,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                                 hideChevron
                                 onSearchChange={fetchLocationSuggestions}
                                 isLoading={isLoadingLocations}
+                                onFocus={requestGeolocation}
                             />
                             <svg className='absolute left-2 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600 pointer-events-none z-10' fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
