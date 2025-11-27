@@ -454,8 +454,8 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                 disabled={isProcessing}
             />
             <div className={cn(
-                "bg-gradient-to-br from-white via-white flex flex-col h-full to-purple-50 w-full shadow-2xl relative rounded-lg !font-montserrat",
-                isMobile ? "p-4 gap-4 max-w-full my-auto rounded-none" : "p-6 gap-6 max-w-lg max-h-[90vh] overflow-y-auto rounded-r-none"
+                "bg-gradient-to-br from-white via-white flex flex-col h-full to-purple-50 shadow-2xl relative rounded-lg !font-montserrat",
+                isMobile ? "p-4 gap-4 max-w-full my-auto rounded-none" : "p-6 gap-6 max-w-xl max-h-[90vh] overflow-y-auto rounded-r-none"
             )}>
                 <button
                     onClick={handleClose}
@@ -618,7 +618,10 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                                         onCheckedChange={setIsPublic}
                                     />
                                 </div>
-                                <div className='text-[13.5px] pl-1.5 antialiased font-medium text-[#B3B3B3] font-montserrat leading-4.5 tracking-tight'>Your photo memory will be shown alongside other<br /> featured memories by the community</div>
+                                <div className='text-[13.5px] pl-1.5 antialiased font-medium text-[#B3B3B3] font-montserrat leading-4.5 tracking-tight'>
+                                    Your photo memory will be eligible to be shown alongside other
+                                    featured memories from the community
+                                </div>
                             </div>
                         </div>
                         <input
@@ -729,7 +732,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
             </div>
 
             {/* Preview section - desktop only */}
-            {!isMobile && <div className='flex flex-col relative gap-0 items-center justify-center bg-[#1E1E1E] rounded-r-lg !max-h-[90vh] h-full'>
+            {!isMobile && <div className='flex flex-col relative gap-0 items-center justify-center bg-[#1E1E1E] rounded-r-lg !max-h-[90vh] h-full px-10'>
                 <p className='absolute top-4 text-muted-foreground'>Preview</p>
                 <StampPreview
                     headline={title}

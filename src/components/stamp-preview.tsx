@@ -128,7 +128,7 @@ export default function StampPreview({
                         <div className={cn(
                             "flex items-center justify-start gap-4"
                         )}>
-                            <div className="flex items-start gap-1 text-xs max-w-1/2 w-full">
+                            <div className="flex items-center gap-1 text-xs max-w-1/2 w-full">
                                 <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" onClick={() => document.getElementById("location-text")?.focus()}>
                                     <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
                                 </svg>
@@ -207,7 +207,7 @@ export default function StampPreview({
                                     <div
                                         className={cn(
                                             "absolute bg-black/30 border border-white backdrop-blur-sm rounded-full p-3 cursor-pointer z-50 hover:bg-black/80 transition-colors",
-                                            noText ? "top-10 left-8" : "top-7 left-14"
+                                            noText ? "top-10 left-8" : "top-7 left-12"
                                         )}
                                         onClick={onReselect}
                                     >
@@ -218,7 +218,7 @@ export default function StampPreview({
                                         onClick={onReselect}
                                     >
                                         <Upload className="w-12 h-12 text-white" />
-                                        <p className="text-white text-lg font-medium">Select different image</p>
+                                        <p className="text-white text-lg font-medium">Replace Image</p>
                                     </div>
                                 </>
                             )}
