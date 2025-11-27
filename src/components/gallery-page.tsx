@@ -666,7 +666,7 @@ const GalleryPage: React.FC = () => {
                 </div>
             )}
 
-            <div className={cn('absolute top-6 md:!left-6 z-40', isMobile && "left-1/2 -translate-x-1/2 -mr-9")}>
+            <div className={cn('absolute !top-6 !left-6 z-40')}>
                 <MemoriesLogo theme='light' />
             </div>
 
@@ -753,7 +753,7 @@ const GalleryPage: React.FC = () => {
             )}
 
             {/* Floating Action Button */}
-            <div className={cn(`fixed z-20 top-18 md:top-5 md:right-5`, isMobile && "left-1/2 transform -translate-x-1/2")}>
+            <div className={cn(`fixed z-20 top-5 right-5`)}>
                 <Button
                     className="bg-[#000DFF] text-white border border-[#2C2C2C] px-10 py-6 text-base font-medium rounded-md flex items-center gap-2"
                     variant="ghost"
@@ -761,7 +761,8 @@ const GalleryPage: React.FC = () => {
                     onClick={handleUploadClick}
                 >
                     <Upload className="w-4 h-4" />
-                    Preserve your memories
+                    {!isMobile && "Preserve your memories"}
+                    Upload
                 </Button>
             </div>
 
