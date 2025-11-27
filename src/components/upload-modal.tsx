@@ -93,7 +93,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
         setIsLoadingLocations(true)
         try {
             const response = await fetch(
-                `https://photon.komoot.io/reverse?lat=${lat}&lon=${lon}&limit=10`
+                `https://photon.komoot.io/reverse?lat=${lat}&lon=${lon}&limit=40`
             )
             const data = await response.json()
 
@@ -191,7 +191,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                 setIsLoadingLocations(true)
                 try {
                     const response = await fetch(
-                        `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=10`
+                        `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=40`
                     )
                     const data = await response.json()
 
@@ -518,30 +518,30 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                                 disabled={isUploading}
                                 className='flex items-center justify-between w-full pl-8 pr-8 py-5 h-10 rounded-lg border border-gray-300 bg-[#F5F5F5] hover:bg-[#F5F5F5] focus-visible:ring-0 focus-visible:ring-offset-0 text-sm text-left disabled:opacity-50 disabled:cursor-not-allowed'
                             >
-                                <span className={cn('truncate', location ? 'text-black' : 'text-gray-400')}>
+                                <span className={cn('truncate text-[#2C2C2C]')}>
                                     {location || 'Add Location'}
                                 </span>
                             </button>
-                            <svg className='absolute left-2 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600 pointer-events-none z-10' fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className='absolute left-2 top-1/2 -translate-y-1/2 w-5 h-5 text-[#2C2C2C] pointer-events-none z-10' fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
-                            <svg className='absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none z-10' fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className='absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 text-[#2C2C2C] pointer-events-none z-10' fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                             </svg>
                         </div>
                         <div className='relative'>
                             <Input
                                 placeholder='Add Your Handle'
-                                className='pl-8 pr-8 py-5 rounded-lg border border-gray-300 !bg-[#F5F5F5] focus-visible:ring-0 focus-visible:ring-offset-0'
+                                className='pl-8 pr-8 py-5 text-[#2C2C2C] !placeholder-[#2C2C2C] rounded-lg border border-gray-300 !bg-[#F5F5F5] focus-visible:ring-0 focus-visible:ring-offset-0'
                                 value={handle}
                                 onChange={(e) => setHandle(e.target.value)}
                                 disabled={isUploading}
                             />
-                            <svg className='absolute left-2 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600' fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className='absolute left-2 top-1/2 -translate-y-1/2 w-5 h-5 text-[#2C2C2C]' fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
-                            <svg className='absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400' fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className='absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 text-[#2C2C2C]' fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                             </svg>
                         </div>
@@ -608,17 +608,17 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                     </div> */}
                     <div className='flex flex-col gap-2 border-b border-muted-foreground/70 pb-4'>
                         <div className={cn('font-montserrat flex gap-2 pl-0.5 justify-center items-start')}>
-                            <div className='flex flex-col w-full gap-1.5'>
+                            <div className='flex flex-col w-full gap-1'>
                                 <div className='flex gap-2 justify-center items-center w-full font-light'>
-                                    <Compass className='w-4.5 h-4.5 text-gray-600' />
-                                    <span className='text-lg'>Feature in explore</span>
+                                    <Compass className='w-4.5 h-4.5 text-[#2C2C2C] ml-1.5' />
+                                    <span className='text-md text-[#2C2C2C]'>Feature in explore</span>
                                     <Switch
                                         className='ml-auto relative scale-115 mr-1'
                                         checked={isPublic}
                                         onCheckedChange={setIsPublic}
                                     />
                                 </div>
-                                <div className='text-sm pl-0.5 antialiased text-muted-foreground font-montserrat leading-4.5 tracking-tight'>Your photo memory will be shown alongside other<br /> featured memories by the community</div>
+                                <div className='text-[13.5px] pl-1.5 antialiased font-medium text-[#B3B3B3] font-montserrat leading-4.5 tracking-tight'>Your photo memory will be shown alongside other<br /> featured memories by the community</div>
                             </div>
                         </div>
                         <input
