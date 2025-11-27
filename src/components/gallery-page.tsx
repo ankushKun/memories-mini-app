@@ -15,6 +15,7 @@ import imageCompression from 'browser-image-compression'
 import { ArconnectSigner, TurboFactory } from '@ardrive/turbo-sdk/web'
 import { QuickWallet } from 'quick-wallet'
 import permanent from "@/assets/permanent-light.png"
+import { cn } from '@/lib/utils'
 
 // GraphQL query for fetching Arweave transactions
 const MEMORIES_QUERY = `query GetMemories($after: String) {
@@ -665,7 +666,7 @@ const GalleryPage: React.FC = () => {
                 </div>
             )}
 
-            <div className='absolute !top-6 !left-6 z-40'>
+            <div className={cn('absolute top-6 md:!left-6 z-40', isMobile && "left-1/2 -translate-x-1/2 -mr-9")}>
                 <MemoriesLogo theme='light' />
             </div>
 
@@ -714,7 +715,7 @@ const GalleryPage: React.FC = () => {
             )}
 
             {
-                (viewMode === 'grid' || viewMode === 'card') && <div className='absolute bottom-9 left-9 z-50'>
+                (viewMode === 'grid' || viewMode === 'card') && !isMobile && <div className='absolute bottom-9 left-9 z-50'>
                     <img src={permanent} className='w-22 opacity-80 rounded' />
                 </div>
             }
@@ -752,7 +753,7 @@ const GalleryPage: React.FC = () => {
             )}
 
             {/* Floating Action Button */}
-            <div className={`fixed z-20 top-5 right-5`}>
+            <div className={cn(`fixed z-20 top-18 md:top-5 md:right-5`, isMobile && "left-1/2 transform -translate-x-1/2")}>
                 <Button
                     className="bg-[#000DFF] text-white border border-[#2C2C2C] px-10 py-6 text-base font-medium rounded-md flex items-center gap-2"
                     variant="ghost"

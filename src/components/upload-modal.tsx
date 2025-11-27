@@ -454,7 +454,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                 disabled={isProcessing}
             />
             <div className={cn(
-                "bg-gradient-to-br from-white via-white flex flex-col h-full to-purple-50 shadow-2xl relative rounded-lg !font-montserrat",
+                "bg-gradient-to-br overflow-scroll from-white via-white flex flex-col h-full to-purple-50 shadow-2xl relative rounded-lg !font-montserrat",
                 isMobile ? "p-4 gap-4 max-w-full my-auto rounded-none" : "p-6 gap-6 max-w-xl max-h-[90vh] overflow-y-auto rounded-r-none"
             )}>
                 <button
@@ -476,7 +476,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
 
                 <form onSubmit={handleSubmit} className={cn(
                     'rounded-lg border-0 h-full border-black/20 text-black flex flex-col',
-                    isMobile ? 'p-0 gap-4' : 'p-6 gap-6'
+                    isMobile ? 'p-0 gap-4' : 'p-6 gap-6',
                 )}>
 
                     {isMobile && <StampPreview
@@ -507,7 +507,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                             disabled={isUploading}
                         />
                     </div>
-                    <div className={cn('grid gap-2 grid-cols-2')}>
+                    <div className={cn('grid gap-2 md:grid-cols-2')}>
                         <div className='relative'>
                             <button
                                 type="button"
@@ -729,6 +729,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                         </>
                     )} */}
                 </form>
+                {isMobile && <div className='h-10' ></div>}
             </div>
 
             {/* Preview section - desktop only */}
