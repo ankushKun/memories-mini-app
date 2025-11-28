@@ -1,7 +1,7 @@
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import { ThemeProvider } from '@/components/theme-provider.tsx'
-import { BrowserRouter, HashRouter, Route, Routes } from "react-router";
+import { BrowserRouter, HashRouter, Route, Routes } from "react-router"
 import { ArweaveWalletKit } from "@arweave-wallet-kit/react"
 import WanderStrategy from "@arweave-wallet-kit/wander-strategy"
 import WAuthStrategy from "@wauth/strategy"
@@ -15,9 +15,9 @@ import TermsAndConditions from './components/tnc'
 
 import { QuickWallet } from "quick-wallet"
 import QuickWalletStrategy from '@vela-ventures/quick-wallet-strategy'
-import { useEffect } from 'react';
-import { Toaster } from './components/ui/sonner';
-
+import { useEffect } from 'react'
+import { Toaster } from './components/ui/sonner'
+import { PostHogProvider } from "posthog-js/react"
 
 function Main() {
   QuickWallet.connect()
@@ -61,4 +61,16 @@ function Main() {
   )
 }
 
-createRoot(document.getElementById('root')!).render(<Main />)
+createRoot(document.getElementById('root')!).render(
+  <PostHogProvider
+    apiKey={"phc_Ks5EkCuzahe3dKg2SODetHdy2q5cOU7DcYj83T9VEOJ"}
+    options={{
+      api_host: "https://eu.i.posthog.com",
+      defaults: '2025-05-24',
+      capture_exceptions: true, // This enables capturing exceptions using Error Tracking, set to false if you don't want this
+      debug: import.meta.env.MODE === "development",
+    }}
+  >
+    <Main />
+  </PostHogProvider>
+)
