@@ -761,8 +761,7 @@ const GalleryPage: React.FC = () => {
                     onClick={handleUploadClick}
                 >
                     <Upload className="w-4 h-4" />
-                    {!isMobile && "Preserve your memories"}
-                    Upload
+                    {!isMobile ? "Preserve your memories" : "Upload"}
                 </Button>
             </div>
 

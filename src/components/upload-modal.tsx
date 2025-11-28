@@ -29,6 +29,7 @@ import {
     SheetTitle,
     SheetDescription,
 } from './ui/sheet'
+import { Link } from 'react-router'
 
 interface UploadModalProps {
     isOpen: boolean
@@ -705,7 +706,20 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                         >
                             {isUploading ? 'Sharing...' : 'Share Memory'}
                         </Button>
-
+                        <div className="w-full text-center py-2 -my-6">
+                            <span className="text-xs text-muted-foreground/80">
+                                By uploading, you agree to the{' '}
+                                <Link
+                                    to="/tnc"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="underline underline-offset-2 hover:text-muted-foreground"
+                                >
+                                    Terms & Conditions
+                                </Link>
+                                .
+                            </span>
+                        </div>
                     </>
                     {/* {isMobile ? (
                         <Button
@@ -729,7 +743,6 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                         </>
                     )} */}
                 </form>
-                {isMobile && <div className='h-10' ></div>}
             </div>
 
             {/* Preview section - desktop only */}
