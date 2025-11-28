@@ -11,6 +11,7 @@ import AosyncStrategy from "@vela-ventures/aosync-strategy"
 import App from './App'
 import GalleryPage from './components/gallery-page'
 import UploadedPage from './components/uploaded-page'
+import TermsAndConditions from './components/tnc'
 
 import { QuickWallet } from "quick-wallet"
 import QuickWalletStrategy from '@vela-ventures/quick-wallet-strategy'
@@ -50,6 +51,7 @@ function Main() {
           <Route index element={<App />} />
           <Route path='gallery' element={<GalleryPage />} />
           <Route path='view/:transactionId' element={<UploadedPage />} />
+          <Route path='tnc' element={<TermsAndConditions />} />
         </Routes>
       </HashRouter>
     </ThemeProvider>

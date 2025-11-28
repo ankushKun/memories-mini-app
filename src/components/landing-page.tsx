@@ -516,6 +516,10 @@ const LandingPage: React.FC = () => {
                 onUpload={handleModalUpload}
                 initialFile={initialFile}
             />
+
+            <div className='absolute bottom-2 left-2'>
+                <Link to="/tnc" className='text-[10px] text-muted-foreground/80 px-1'>Terms & Conditions</Link>
+            </div>
         </div>
     )
 }
