@@ -15,6 +15,7 @@ import { Checkbox } from './ui/checkbox'
 import { QuickWallet } from 'quick-wallet'
 import convertHEIC from 'heic-convert/browser'
 import ExifReader from 'exifreader'
+import { checkNSFW } from '@/lib/nsfw'
 import {
     Command,
     CommandEmpty,
@@ -370,17 +371,26 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                 return;
             }
 
-            // NSFW check after compression
+            // NSFW check after compression using nsfwjs
             try {
-                const formData = new FormData();
-                formData.append('media', file);
-                const res = await fetch('https://arweave.tech/api/moderate/check', {
-                    method: 'POST',
-                    body: formData
+                // Create an image element to load the file
+                const img = new Image();
+                const imageUrl = URL.createObjectURL(file);
+
+                await new Promise((resolve, reject) => {
+                    img.onload = resolve;
+                    img.onerror = reject;
+                    img.src = imageUrl;
                 });
-                const data = await res.json();
-                if (data?.unsafe === true) {
-                    setBlockedReason(data?.reason || 'This image was flagged as unsafe and cannot be uploaded.');
+
+                // Check for NSFW content
+                const result = await checkNSFW(img);
+
+                // Clean up the object URL
+                URL.revokeObjectURL(imageUrl);
+
+                if (result.unsafe) {
+                    setBlockedReason(result.reason || 'This image was flagged as unsafe and cannot be uploaded.');
                     setIsProcessing(false);
                     setSelectedFile(null);
                     setPreviewUrl(null);
@@ -388,11 +398,12 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                 }
             } catch (err) {
                 console.error('Error checking image for unsafe content:', err);
-                setBlockedReason('Error checking image for unsafe content.');
-                setIsProcessing(false);
-                setSelectedFile(null);
-                setPreviewUrl(null);
-                return;
+                // Continue with upload if NSFW check fails - don't block the user
+                // setBlockedReason('Error checking image for unsafe content.');
+                // setIsProcessing(false);
+                // setSelectedFile(null);
+                // setPreviewUrl(null);
+                // return;
             }
 
             setIsProcessing(false)
@@ -794,7 +805,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                         <div className='flex flex-col items-center justify-center gap-2 my-4 p-4 border-2 border-red-700 bg-red-100 text-red-900 rounded-xl shadow-lg'>
                             <span className='font-bold text-lg'>Upload Blocked!</span>
                             <span className='text-base font-medium text-center'>{blockedReason}</span>
-                            <span className='text-sm text-red-700'>Your image violates our safety guidelines. Please choose a different image.</span>
+                            <span className='text-sm text-red-700 text-center'>Your image violates our safety guidelines. Please choose a different image.</span>
                         </div>
                     )}
                     <>

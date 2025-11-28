@@ -9,6 +9,7 @@ import permanentImage from "@/assets/permanent.png"
 import { cn } from '@/lib/utils'
 import StampPreview from './stamp-preview'
 import { QuickWallet } from 'quick-wallet'
+import { loadNSFWModel } from '@/lib/nsfw'
 
 // GraphQL query for fetching Arweave transactions
 const MEMORIES_QUERY = `query GetMemories($after: String) {
@@ -111,6 +112,13 @@ const LandingPage: React.FC = () => {
     const api = QuickWallet
     const navigate = useNavigate()
     const address = QuickWallet.getActiveAddress()
+
+    // Preload NSFW model when landing page mounts
+    useEffect(() => {
+        loadNSFWModel().catch(error => {
+            console.error('Failed to preload NSFW model:', error)
+        })
+    }, [])
 
     async function handleImageUpload(file: File, uploadData: UploadData): Promise<string> {
         if (!api) throw new Error('Wallet not initialized not found');
