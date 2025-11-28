@@ -239,13 +239,67 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
         }
     }, [])
 
+    const compressImage = async (file: File): Promise<File> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    if (!ctx) {
+                        reject(new Error('Failed to get canvas context'));
+                        return;
+                    }
+
+                    // Calculate new dimensions (max 1920x1080 while maintaining aspect ratio)
+                    let width = img.width;
+                    let height = img.height;
+                    const maxWidth = 1920;
+                    const maxHeight = 1080;
+
+                    if (width > maxWidth || height > maxHeight) {
+                        const ratio = Math.min(maxWidth / width, maxHeight / height);
+                        width = width * ratio;
+                        height = height * ratio;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    canvas.toBlob(
+                        (blob) => {
+                            if (!blob) {
+                                reject(new Error('Failed to compress image'));
+                                return;
+                            }
+                            const compressedFile = new File([blob], file.name, {
+                                type: 'image/jpeg',
+                                lastModified: Date.now(),
+                            });
+                            resolve(compressedFile);
+                        },
+                        'image/jpeg',
+                        0.85 // quality
+                    );
+                };
+                img.onerror = () => reject(new Error('Failed to load image'));
+                img.src = e.target?.result as string;
+            };
+            reader.onerror = () => reject(new Error('Failed to read file'));
+            reader.readAsDataURL(file);
+        });
+    };
+
     const handleNewFile = useMemo(() => {
         return async (file: File) => {
             if (!file.type.startsWith('image/')) return;
 
-            // reset previous metadata
+            // reset previous metadata and errors
             setDatetime('');
             setLocation('');
+            setBlockedReason(null);
 
             setIsProcessing(true);
 
@@ -300,10 +354,45 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                     file = new File([blob], file.name.replace(/\.(heic|heif)$/i, '.jpg'), { type: 'image/jpeg' })
                 } catch (error) {
                     console.error('Error converting HEIC image:', error)
-                    alert('Failed to process HEIC image. Please try a different image format.')
+                    toast.error('Failed to process HEIC image. Please try a different image format.')
                     setIsProcessing(false)
                     return
                 }
+            }
+
+            // Compress the image
+            try {
+                file = await compressImage(file);
+            } catch (error) {
+                console.error('Error compressing image:', error);
+                toast.error('Failed to compress image. Please try a different image.');
+                setIsProcessing(false);
+                return;
+            }
+
+            // NSFW check after compression
+            try {
+                const formData = new FormData();
+                formData.append('media', file);
+                const res = await fetch('https://arweave.tech/api/moderate/check', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (data?.unsafe === true) {
+                    setBlockedReason(data?.reason || 'This image was flagged as unsafe and cannot be uploaded.');
+                    setIsProcessing(false);
+                    setSelectedFile(null);
+                    setPreviewUrl(null);
+                    return;
+                }
+            } catch (err) {
+                console.error('Error checking image for unsafe content:', err);
+                setBlockedReason('Error checking image for unsafe content.');
+                setIsProcessing(false);
+                setSelectedFile(null);
+                setPreviewUrl(null);
+                return;
             }
 
             setIsProcessing(false)
@@ -385,27 +474,6 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
 
         setIsUploading(true)
         setUploadError(null) // Clear any previous errors
-        setBlockedReason(null)
-
-        // NSFW check after compression and before upload
-        try {
-            const formData = new FormData();
-            formData.append('media', selectedFile);
-            const res = await fetch('http://localhost:3001/moderate/check', {
-                method: 'POST',
-                body: formData
-            });
-            const data = await res.json();
-            if (data?.unsafe === true) {
-                setIsUploading(false);
-                setBlockedReason(data?.reason || 'This image was flagged as unsafe and cannot be uploaded.');
-                return;
-            }
-        } catch (err) {
-            setIsUploading(false);
-            setBlockedReason('Error checking image for unsafe content.');
-            return;
-        }
 
         try {
             const uploadData: UploadData = {
