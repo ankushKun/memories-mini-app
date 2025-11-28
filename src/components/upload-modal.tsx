@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react'
+import { toast } from 'sonner'
 import { ArrowRight, Upload, Image as ImageIcon, ArrowLeft, Check, Loader2, MoveLeft, Compass, X, MapPin } from 'lucide-react'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
@@ -76,6 +77,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
     const [isDragging, setIsDragging] = useState(false)
     const [uploadError, setUploadError] = useState<string | null>(null)
     const [mobileStep, setMobileStep] = useState<1 | 2>(1) // 1: input details, 2: preview & upload
+    const [blockedReason, setBlockedReason] = useState<string | null>(null)
     const [locationOptions, setLocationOptions] = useState<{ value: string; label: string }[]>(LOCATION_OPTIONS)
     const [isLoadingLocations, setIsLoadingLocations] = useState(false)
     const [hasRequestedGeolocation, setHasRequestedGeolocation] = useState(false)
@@ -380,8 +382,30 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
             return
         }
 
+
         setIsUploading(true)
         setUploadError(null) // Clear any previous errors
+        setBlockedReason(null)
+
+        // NSFW check after compression and before upload
+        try {
+            const formData = new FormData();
+            formData.append('media', selectedFile);
+            const res = await fetch('http://localhost:3001/moderate/check', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            if (data?.unsafe === true) {
+                setIsUploading(false);
+                setBlockedReason(data?.reason || 'This image was flagged as unsafe and cannot be uploaded.');
+                return;
+            }
+        } catch (err) {
+            setIsUploading(false);
+            setBlockedReason('Error checking image for unsafe content.');
+            return;
+        }
 
         try {
             const uploadData: UploadData = {
@@ -698,10 +722,17 @@ const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpload, in
                             {uploadError}
                         </div>
                     )}
+                    {blockedReason && (
+                        <div className='flex flex-col items-center justify-center gap-2 my-4 p-4 border-2 border-red-700 bg-red-100 text-red-900 rounded-xl shadow-lg'>
+                            <span className='font-bold text-lg'>Upload Blocked!</span>
+                            <span className='text-base font-medium text-center'>{blockedReason}</span>
+                            <span className='text-sm text-red-700'>Your image violates our safety guidelines. Please choose a different image.</span>
+                        </div>
+                    )}
                     <>
                         <Button
                             type="submit"
-                            disabled={!selectedFile || !title.trim() || !handle.trim() || !location.trim() || isUploading}
+                            disabled={!selectedFile || !title.trim() || !handle.trim() || !location.trim() || isUploading || !!blockedReason}
                             className='w-full mt-auto bg-[#000DFF] disabled:bg-gray-500 font-light text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed text-xl p-6'
                         >
                             {isUploading ? 'Sharing...' : 'Share Memory'}

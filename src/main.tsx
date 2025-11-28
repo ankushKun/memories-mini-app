@@ -16,6 +16,7 @@ import TermsAndConditions from './components/tnc'
 import { QuickWallet } from "quick-wallet"
 import QuickWalletStrategy from '@vela-ventures/quick-wallet-strategy'
 import { useEffect } from 'react';
+import { Toaster } from './components/ui/sonner';
 
 
 function Main() {
@@ -46,6 +47,7 @@ function Main() {
     //   theme={{ displayTheme: "dark" }}
     // >
     <ThemeProvider defaultTheme="dark">
+      <Toaster position="top-center" richColors />
       <HashRouter>
         <Routes>
           <Route index element={<App />} />
