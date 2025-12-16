@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { ImageUp, Upload, Loader2 } from "lucide-react";
 import { Input } from "./ui/input";
+import { useRef, useEffect, useState } from "react";
 
 interface StampPreviewProps {
     headline: string;
@@ -27,6 +28,10 @@ interface StampPreviewProps {
     onHandleChange?: (value: string) => void;
 }
 
+// Base widths that the fixed sizes are designed for
+const BASE_WIDTH_VERTICAL = 512; // max-w-lg = 32rem = 512px
+const BASE_WIDTH_HORIZONTAL = 896; // approximate expected width for horizontal
+
 export default function StampPreview({
     headline,
     location,
@@ -45,6 +50,76 @@ export default function StampPreview({
     onLocationChange,
     onHandleChange,
 }: StampPreviewProps) {
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [contentScale, setContentScale] = useState(1);
+    const [contentOffset, setContentOffset] = useState(0); // Horizontal offset in pixels
+    const [effectiveWidth, setEffectiveWidth] = useState<number | null>(null); // Width of visible area
+
+    // Calculate scale factor and horizontal offset based on effective width
+    useEffect(() => {
+        if (!containerRef.current) return;
+
+        const calculateScaleAndOffset = () => {
+            requestAnimationFrame(() => {
+                if (!containerRef.current) return;
+                
+                const rect = containerRef.current.getBoundingClientRect();
+                const visualWidth = rect.width;
+                const visualHeight = rect.height;
+                
+                // The aspect ratio for this layout (width/height)
+                const aspectRatio = noText ? 1 : (layout === 'horizontal' ? 1.66 : 1/1.66);
+                
+                // Calculate what width would give us this height at the correct aspect ratio
+                const expectedWidthFromHeight = visualHeight * aspectRatio;
+                
+                // The effective width is the smaller of actual width or calculated width from height
+                // This handles cases where height is constrained (max-h) causing the mask to shrink
+                const effectiveWidth = Math.min(visualWidth, expectedWidthFromHeight);
+                
+                // Calculate horizontal offset: when height constrains width, 
+                // the mask is centered so we need to offset content by half the difference
+                const horizontalOffset = (visualWidth - effectiveWidth) / 2;
+                
+                const baseWidth = layout === 'horizontal' ? BASE_WIDTH_HORIZONTAL : BASE_WIDTH_VERTICAL;
+                
+                // Only scale down, never up
+                const scale = Math.min(1, effectiveWidth / baseWidth);
+                
+                console.log('Scale calculation:', { 
+                    visualWidth, 
+                    visualHeight, 
+                    expectedWidthFromHeight, 
+                    effectiveWidth, 
+                    horizontalOffset,
+                    baseWidth, 
+                    scale 
+                });
+                
+                setContentScale(scale);
+                setContentOffset(horizontalOffset);
+                setEffectiveWidth(effectiveWidth < visualWidth ? effectiveWidth : null);
+            });
+        };
+
+        // Initial calculation after a short delay to ensure styles are applied
+        setTimeout(calculateScaleAndOffset, 100);
+
+        // Use ResizeObserver to detect size changes
+        const observer = new ResizeObserver(() => {
+            calculateScaleAndOffset();
+        });
+        observer.observe(containerRef.current);
+
+        // Also listen for window resize
+        window.addEventListener('resize', calculateScaleAndOffset);
+
+        return () => {
+            observer.disconnect();
+            window.removeEventListener('resize', calculateScaleAndOffset);
+        };
+    }, [layout, noText]);
+
     if (!handle) {
         handle = 'Your Handle'
     }
@@ -76,6 +151,7 @@ export default function StampPreview({
 
     return (
         <div
+            ref={containerRef}
             className={cn(`relative text-black overflow-clip`,
                 noText ? 'aspect-[1/1]' : layout === 'horizontal' ? 'aspect-[1.66/1]' : 'aspect-[1/1.66]',
                 !className?.includes('w-') && (noText ? 'w-[min(90vw,theme(maxWidth.2xl))]' : layout === 'horizontal' ? 'w-[min(90vw,theme(maxWidth.5xl))]' : 'w-[min(90vw,theme(maxWidth.lg))]'),
@@ -94,15 +170,30 @@ export default function StampPreview({
                 WebkitMaskSize: 'contain',
                 WebkitMaskRepeat: 'no-repeat',
                 WebkitMaskPosition: 'center',
-            }}
+                // Pass scale factor as CSS custom property
+                '--stamp-scale': contentScale,
+            } as React.CSSProperties}
         >
             {/* Main content - Two sections stacked vertically or horizontally */}
-            <div className={cn("relative z-10 flex h-full w-full", layout === 'horizontal' ? 'flex-row' : 'flex-col')}>
+            <div 
+                className={cn("relative z-10 flex h-full w-full", layout === 'horizontal' ? 'flex-row' : 'flex-col')}
+            >
                 {/* Text section - Left side (horizontal) or Top (vertical) */}
-                {!noText && <div className={cn(
-                    "flex flex-col justify-between grow",
-                    layout === 'horizontal' ? 'flex-1 p-8 px-10 max-w-1/2' : 'flex-1 w-full p-10 px-12 grow'
-                )}>
+                {/* Wrapper to constrain and center text section when height is constrained */}
+                {!noText && <div 
+                    className={cn(
+                        "flex flex-col justify-between grow",
+                        layout === 'horizontal' ? 'flex-1 max-w-1/2' : 'flex-1 w-full grow'
+                    )}
+                    style={{
+                        // Constrain width to effective visible area and center the text section
+                        width: effectiveWidth ? `${effectiveWidth}px` : '100%',
+                        margin: effectiveWidth ? '0 auto' : undefined,
+                        padding: layout === 'horizontal' 
+                            ? `${2 * contentScale}rem ${2.5 * contentScale}rem`
+                            : `${2 * contentScale}rem ${2.5 * contentScale}rem`,
+                    }}
+                >
                     <div className={cn("space-y-4", layout === 'horizontal' && 'space-y-2')}>
                         {/* Main headline */}
                         <div className="items-center justify-center">
@@ -113,8 +204,13 @@ export default function StampPreview({
                                 onBlur={(e) => onHeadlineChange?.(e.currentTarget.textContent || '')}
                                 className={cn(
                                     "font-light w-full leading-tight cursor-text font-instrument text-left rounded focus:outline-2 outline-blue-400/50",
-                                    size === 'sm' ? 'text-2xl md:text-4xl min-h-[2rem] md:min-h-[2.5rem]' : size === 'lg' ? 'text-5xl md:text-8xl min-h-[3.5rem] md:min-h-[5rem]' : (layout === 'horizontal' ? 'text-4xl md:text-7xl min-h-[2.5rem] md:min-h-[4.5rem]' : 'text-3xl md:text-6xl min-h-[2rem] md:min-h-[3.75rem]')
+                                    size === 'sm' ? 'text-2xl md:text-4xl min-h-[2rem] md:min-h-[2.5rem]' : size === 'lg' ? 'text-5xl md:text-8xl min-h-[3.5rem] md:min-h-[5rem]' : ''
                                 )}
+                                style={!size ? {
+                                    fontSize: layout === 'horizontal' 
+                                        ? `${4.5 * contentScale}rem`  // ~text-7xl equivalent
+                                        : `${3.75 * contentScale}rem`, // ~text-6xl equivalent
+                                } : undefined}
                             >
                                 {headline}
                             </h1>
@@ -125,11 +221,21 @@ export default function StampPreview({
                         </div>
 
                         {/* Header with location and handle */}
-                        <div className={cn(
-                            "flex items-center justify-start gap-4"
-                        )}>
-                            <div className="flex items-center gap-1 text-xs max-w-1/2 w-full">
-                                <svg className="w-3 h-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20" onClick={() => document.getElementById("location-text")?.focus()}>
+                        <div 
+                            className={cn("flex items-center justify-start")}
+                            style={{ gap: `${1 * contentScale}rem` }}
+                        >
+                            <div 
+                                className="flex items-center max-w-1/2 w-full"
+                                style={{ gap: `${0.25 * contentScale}rem`, fontSize: `${0.75 * contentScale}rem` }}
+                            >
+                                <svg 
+                                    className="flex-shrink-0" 
+                                    style={{ width: `${0.75 * contentScale}rem`, height: `${0.75 * contentScale}rem` }}
+                                    fill="currentColor" 
+                                    viewBox="0 0 20 20" 
+                                    onClick={() => document.getElementById("location-text")?.focus()}
+                                >
                                     <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
                                 </svg>
                                 <span
@@ -140,14 +246,17 @@ export default function StampPreview({
                                     className="uppercase focus:outline-2 outline-blue-400/50 rounded-xs cursor-text tracking-wide font-light inline-block min-w-[8ch]"
                                 >{location}</span>
                             </div>
-                            <div className="relative max-w-1/2 w-full flex items-start">
-                                <span onClick={() => document.getElementById("handle-text")?.focus()} className="font-light  text-xs">{handle.startsWith("@") ? "" : "@"}</span>
+                            <div 
+                                className="relative max-w-1/2 w-full flex items-start"
+                                style={{ fontSize: `${0.75 * contentScale}rem` }}
+                            >
+                                <span onClick={() => document.getElementById("handle-text")?.focus()} className="font-light">{handle.startsWith("@") ? "" : "@"}</span>
                                 <span
                                     // contentEditable
                                     id="handle-text"
                                     // suppressContentEditableWarning
                                     onBlur={(e) => onHandleChange?.(e.currentTarget.textContent || '')}
-                                    className="font-light rounded-xs text-xs cursor-text focus:outline-2 outline-blue-400/50 inline-block min-w-[6ch]"
+                                    className="font-light rounded-xs cursor-text focus:outline-2 outline-blue-400/50 inline-block min-w-[6ch]"
                                 >{handle}</span>
                             </div>
                         </div>
@@ -155,25 +264,40 @@ export default function StampPreview({
 
 
                     {/* Footer with branding */}
-                    <div className={cn(
-                        "flex items-end gap-4 mt-6 justify-between"
-                    )}>
+                    <div 
+                        className={cn("flex items-end justify-between")}
+                        style={{
+                            gap: `${1 * contentScale}rem`,
+                            marginTop: `${1.5 * contentScale}rem`,
+                        }}
+                    >
                         <div className="space-y-1">
-                            <p className="text-[8px] tracking-wide uppercase leading-tight">
+                            <p 
+                                className="tracking-wide uppercase leading-tight"
+                                style={{ fontSize: `${8 * contentScale}px` }}
+                            >
                                 Your memories deserve forever
                             </p>
                             <div
-                                className="text-[8px] underline underline-offset-2 tracking-wide uppercase block"
+                                className="underline underline-offset-2 tracking-wide uppercase block"
+                                style={{ fontSize: `${8 * contentScale}px` }}
                             >
                                 onememory.xyz
                             </div>
                         </div>
 
                         {/* Permanent on Arweave badge */}
-                        <img src={permanentImage} alt="Permanent on Arweave" className={cn(
-                            "relative",
-                            layout === 'horizontal' ? 'h-8' : 'h-10 top-1'
-                        )} />
+                        <img 
+                            src={permanentImage} 
+                            alt="Permanent on Arweave" 
+                            className="relative"
+                            style={{
+                                height: layout === 'horizontal' 
+                                    ? `${2 * contentScale}rem` 
+                                    : `${2.5 * contentScale}rem`,
+                                top: layout === 'horizontal' ? 0 : `${0.25 * contentScale}rem`,
+                            }}
+                        />
                     </div>
                 </div>}
 
@@ -244,13 +368,17 @@ export default function StampPreview({
 
                     {/* Date stamp - Position varies by layout */}
                     {!noText && <div
-                        className={cn(
-                            "absolute text-white font-semibold tracking-wider z-10",
-                            layout === 'horizontal'
-                                ? 'right-8 bottom-8 text-base'
-                                : 'right-12 bottom-12 text-lg'
-                        )}
+                        className="absolute text-white font-semibold tracking-wider z-10"
                         style={{
+                            right: layout === 'horizontal' 
+                                ? `${2 * contentScale}rem` 
+                                : `${3 * contentScale}rem`,
+                            bottom: layout === 'horizontal' 
+                                ? `${2 * contentScale}rem` 
+                                : `${3 * contentScale}rem`,
+                            fontSize: layout === 'horizontal' 
+                                ? `${1 * contentScale}rem` 
+                                : `${1.125 * contentScale}rem`,
                             writingMode: 'vertical-rl',
                             textOrientation: 'mixed',
                             letterSpacing: '0.2em',
